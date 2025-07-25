@@ -1,0 +1,39 @@
+// Test JavaScript file with various function types
+
+function calculateTotal(items, taxRate) {
+    return items.reduce((sum, item) => sum + item.price, 0) * (1 + taxRate);
+}
+
+const getUserById = (id) => {
+    return database.find(user => user.id === id);
+};
+
+export function formatCurrency(amount, currency = 'USD') {
+    return new Intl.NumberFormat('en-US', { 
+        style: 'currency', 
+        currency 
+    }).format(amount);
+}
+
+class ShoppingCart {
+    constructor(userId) {
+        this.userId = userId;
+        this.items = [];
+    }
+    
+    addItem(product, quantity) {
+        this.items.push({ product, quantity });
+    }
+    
+    async checkout() {
+        const total = this.calculateTotal();
+        return await processPayment(this.userId, total);
+    }
+    
+    calculateTotal() {
+        return this.items.reduce((sum, item) => 
+            sum + (item.product.price * item.quantity), 0);
+    }
+}
+
+export default ShoppingCart;
