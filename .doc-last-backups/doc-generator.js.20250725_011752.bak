@@ -36,14 +36,7 @@ const SUPPORTED_EXTENSIONS = {
   '.cjs': 'jsdoc'
 };
 
-/**
- * Documentationgenerator.
- */
 class DocumentationGenerator {
-  /**
-   * Creates a new instance.
-   * @param {*} options - The options.
-   */
   constructor(options = {}) {
     this.verbose = options.verbose || false;
     this.dryRun = options.dryRun || false;
@@ -52,10 +45,6 @@ class DocumentationGenerator {
 
   /**
    * Get recently modified files from git or filesystem
-   */
-  /**
-   * Gets the filestoprocess.
-   * @returns {*} The result.
    */
   getFilesToProcess() {
     let files = [];
@@ -82,10 +71,6 @@ class DocumentationGenerator {
     return files;
   }
 
-  /**
-   * Checks if gitrepository.
-   * @returns {*} The result.
-   */
   isGitRepository() {
     try {
       execSync('git rev-parse --git-dir', { stdio: 'ignore' });
@@ -95,10 +80,6 @@ class DocumentationGenerator {
     }
   }
 
-  /**
-   * Gets the gitchangedfiles.
-   * @returns {*} The result.
-   */
   getGitChangedFiles() {
     const files = new Set();
     
@@ -135,20 +116,10 @@ class DocumentationGenerator {
     });
   }
 
-  /**
-   * Gets the recentlymodifiedfiles.
-   * @param {*} minutes - The minutes.
-   * @returns {*} The result.
-   */
   getRecentlyModifiedFiles(minutes = 5) {
     const cutoffTime = Date.now() - (minutes * 60 * 1000);
     const files = [];
     
-    /**
-     * Scandir.
-     * @param {*} dir - The dir.
-     * @returns {*} The result.
-     */
     const scanDir = (dir) => {
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -177,11 +148,6 @@ class DocumentationGenerator {
 
   /**
    * Parse JavaScript/TypeScript file using Babel
-   */
-  /**
-   * Parsefile.
-   * @param {*} filepath - The filepath.
-   * @returns {*} The result.
    */
   parseFile(filepath) {
     const content = fs.readFileSync(filepath, 'utf8');
@@ -222,11 +188,6 @@ class DocumentationGenerator {
       const self = this;
       
       traverse(ast, {
-        /**
-         * Enter.
-         * @param {*} path - The path.
-         * @returns {*} The result.
-         */
         enter(path) {
           const node = path.node;
           
@@ -272,11 +233,6 @@ class DocumentationGenerator {
             if (funcInfo) functions.push(funcInfo);
           }
         },
-        /**
-         * Exit.
-         * @param {*} path - The path.
-         * @returns {*} The result.
-         */
         exit(path) {
           if (t.isClassDeclaration(path.node) || t.isClassExpression(path.node)) {
             classDepth--;
@@ -295,64 +251,25 @@ class DocumentationGenerator {
     }
   }
   
-  /**
-   * Checks if sjsdoc.
-   * @param {*} node - The node.
-   * @param {*} lines - The lines.
-   * @returns {*} The result.
-   */
   hasJSDoc(node, lines) {
     if (!node.loc) return false;
     
-    // Check leadingComments first - this is more reliable
-    if (node.leadingComments) {
-      const hasJSDocComment = node.leadingComments.some(comment => 
-        comment.type === 'CommentBlock' && comment.value.trim().startsWith('*')
-      );
-      if (hasJSDocComment) return true;
+    const lineAbove = node.loc.start.line - 2; // -1 for 0-indexed, -1 for line above
+    if (lineAbove >= 0 && lineAbove < lines.length) {
+      const line = lines[lineAbove];
+      return line.includes('*/');
     }
     
-    // Fallback: check multiple lines above the function for JSDoc pattern
-    const startLine = node.loc.start.line - 1; // Convert to 0-indexed
-    
-    // Look back up to 10 lines to find a JSDoc comment
-    for (let i = 1; i <= Math.min(10, startLine); i++) {
-      const lineIndex = startLine - i;
-      if (lineIndex < 0) break;
-      
-      const line = lines[lineIndex].trim();
-      
-      // Found end of JSDoc comment
-      if (line === '*/') {
-        // Look for the start of JSDoc comment
-        for (let j = lineIndex; j >= Math.max(0, lineIndex - 20); j--) {
-          const checkLine = lines[j].trim();
-          if (checkLine.startsWith('/**')) {
-            return true;
-          }
-          // If we hit another function or class, stop looking
-          if (checkLine.includes('function ') || checkLine.includes('class ') || 
-              checkLine.includes('=>') || checkLine.includes('constructor(')) {
-            break;
-          }
-        }
-      }
-      
-      // If we hit another function or class definition, stop looking
-      if (line.includes('function ') || line.includes('class ') || 
-          line.includes('=>') || line.includes('constructor(')) {
-        break;
-      }
+    // Check leadingComments
+    if (node.leadingComments) {
+      return node.leadingComments.some(comment => 
+        comment.type === 'CommentBlock' && comment.value.startsWith('*')
+      );
     }
     
     return false;
   }
   
-  /**
-   * Gets the decorators.
-   * @param {*} node - The node.
-   * @returns {*} The result.
-   */
   getDecorators(node) {
     if (!node.decorators) return [];
     return node.decorators.map(dec => {
@@ -366,14 +283,6 @@ class DocumentationGenerator {
     });
   }
   
-  /**
-   * Extractfunctioninfo.
-   * @param {*} node - The node.
-   * @param {*} path - The path.
-   * @param {*} lines - The lines.
-   * @param {*} currentClass - The currentClass.
-   * @returns {*} The result.
-   */
   extractFunctionInfo(node, path, lines, currentClass) {
     let name = '<anonymous>';
     let type = currentClass ? 'method' : 'function';
@@ -443,12 +352,6 @@ class DocumentationGenerator {
     };
   }
   
-  /**
-   * Extractmethodinfo.
-   * @param {*} node - The node.
-   * @param {*} lines - The lines.
-   * @returns {*} The result.
-   */
   extractMethodInfo(node, lines) {
     let name = '<anonymous>';
     
@@ -497,11 +400,6 @@ class DocumentationGenerator {
   /**
    * Analyze a file for undocumented functions
    */
-  /**
-   * Analyzefile.
-   * @param {*} filepath - The filepath.
-   * @returns {*} The result.
-   */
   analyzeFile(filepath) {
     const functions = this.parseFile(filepath);
     const undocumented = functions.filter(f => !f.hasDoc);
@@ -518,11 +416,6 @@ class DocumentationGenerator {
 
   /**
    * Generate JSDoc for a function
-   */
-  /**
-   * Generatejsdoc.
-   * @param {*} func - The func.
-   * @returns {*} The result.
    */
   generateJSDoc(func) {
     const lines = ['/**'];
@@ -598,11 +491,6 @@ class DocumentationGenerator {
     return lines.join('\n');
   }
   
-  /**
-   * Cameltowords.
-   * @param {*} str - The str.
-   * @returns {*} The result.
-   */
   camelToWords(str) {
     if (!str) return '';
     return str
@@ -613,13 +501,6 @@ class DocumentationGenerator {
 
   /**
    * Insert documentation into file
-   */
-  /**
-   * Insertdocumentation.
-   * @param {*} filepath - The filepath.
-   * @param {*} func - The func.
-   * @param {*} docText - The docText.
-   * @returns {*} The result.
    */
   insertDocumentation(filepath, func, docText) {
     try {
@@ -652,11 +533,6 @@ class DocumentationGenerator {
   /**
    * Process file and add documentation
    */
-  /**
-   * Processfile.
-   * @param {*} analysis - The analysis.
-   * @returns {*} The result.
-   */
   processFile(analysis) {
     const results = { processed: 0, failed: 0 };
     
@@ -684,11 +560,6 @@ class DocumentationGenerator {
   /**
    * Create backup of files
    */
-  /**
-   * Createbackups.
-   * @param {*} files - The files.
-   * @returns {*} The result.
-   */
   createBackups(files) {
     const backupDir = '.doc-last-backups';
     if (!fs.existsSync(backupDir)) {
@@ -712,11 +583,6 @@ class DocumentationGenerator {
 
   /**
    * Enhance documentation with Claude
-   */
-  /**
-   * Enhancewithclaude.
-   * @param {*} files - The files.
-   * @returns {*} The result.
    */
   enhanceWithClaude(files) {
     const promptPath = '.claude-doc-enhance-prompt.md';
@@ -787,10 +653,6 @@ Guidelines:
 
   /**
    * Main run method
-   */
-  /**
-   * Run.
-   * @returns {*} The result.
    */
   run() {
     console.log(`${Colors.HEADER}${'='.repeat(60)}${Colors.ENDC}`);

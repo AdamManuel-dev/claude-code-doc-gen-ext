@@ -5,11 +5,6 @@
  * @param {*} url - The url.
  * @returns {*} The result.
  */
-/**
- * Parsequerystring.
- * @param {*} url - The url.
- * @returns {*} The result.
- */
 function parseQueryString(url) {
     const params = new URLSearchParams(url.split('?')[1]);
     const result = {};
@@ -22,19 +17,11 @@ function parseQueryString(url) {
 /**
  * A P I Client.
  */
-/**
- * Apiclient.
- */
 class APIClient {
     /**
      * Creates a new instance.
      * @param {*} baseURL - The base U R L.
      * @param {*} apiKey - The api Key.
-     */
-    /**
-     * Creates a new instance.
-     * @param {*} baseURL - The baseURL.
-     * @param {*} apiKey - The apiKey.
      */
     constructor(baseURL, apiKey) {
         this.baseURL = baseURL;
@@ -47,12 +34,6 @@ class APIClient {
     
     /**
      * request.
-     * @param {*} endpoint - The endpoint.
-     * @param {*} options - The options.
-     * @returns {*} The result.
-     */
-    /**
-     * Request.
      * @param {*} endpoint - The endpoint.
      * @param {*} options - The options.
      * @returns {*} The result.
@@ -76,23 +57,12 @@ class APIClient {
      * @param {*} endpoint - The endpoint.
      * @returns {*} The result.
      */
-    /**
-     * Gets the .
-     * @param {*} endpoint - The endpoint.
-     * @returns {*} The result.
-     */
     get(endpoint) {
         return this.request(endpoint, { method: 'GET' });
     }
     
     /**
      * post.
-     * @param {*} endpoint - The endpoint.
-     * @param {*} data - The data.
-     * @returns {*} The result.
-     */
-    /**
-     * Post.
      * @param {*} endpoint - The endpoint.
      * @param {*} data - The data.
      * @returns {*} The result.
@@ -107,12 +77,6 @@ class APIClient {
 
 /**
  * debounce.
- * @param {*} func - The func.
- * @param {*} delay - The delay.
- * @returns {*} The result.
- */
-/**
- * Debounce.
  * @param {*} func - The func.
  * @param {*} delay - The delay.
  * @returns {*} The result.

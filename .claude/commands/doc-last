@@ -332,11 +332,48 @@ def detect_python_functions(filepath: str) -> List[FunctionInfo]:
                 params = func_match.group(3)
                 signature = f"def {func_name}({params}):"
                 
-                # Check if next line has docstring
+                # Check if function has docstring (check both before and after)
                 has_doc = False
-                if i + 1 < len(lines):
-                    next_line = lines[i + 1].strip()
-                    has_doc = next_line.startswith('"""') or next_line.startswith("'''")
+                
+                # First check after the function definition (standard Python)
+                for j in range(i + 1, min(i + 10, len(lines))):
+                    line_stripped = lines[j].strip()
+                    
+                    # Skip empty lines and comments
+                    if not line_stripped or line_stripped.startswith('#'):
+                        continue
+                    
+                    # Check if this line starts a docstring
+                    if line_stripped.startswith('"""') or line_stripped.startswith("'''"):
+                        has_doc = True
+                        break
+                    
+                    # If we hit actual code (not a docstring), stop looking
+                    if not line_stripped.startswith('"""') and not line_stripped.startswith("'''"):
+                        # This is actual code, no docstring found after
+                        break
+                
+                # If not found after, check before the function definition (non-standard but supported)
+                if not has_doc:
+                    for j in range(max(0, i - 20), i):
+                        line_stripped = lines[j].strip()
+                        
+                        # Check if this line starts a docstring
+                        if line_stripped.startswith('"""') or line_stripped.startswith("'''"):
+                            # Make sure this docstring ends before our function
+                            docstring_found = False
+                            for k in range(j + 1, i):
+                                check_line = lines[k].strip()
+                                if check_line.endswith('"""') or check_line.endswith("'''"):
+                                    docstring_found = True
+                                    break
+                                elif check_line and not check_line.startswith('#') and 'def ' in check_line:
+                                    # Hit another function, this docstring isn't for our function
+                                    break
+                            
+                            if docstring_found:
+                                has_doc = True
+                                break
                 
                 func_type = 'method' if indent > 0 else 'function'
                 functions.append(FunctionInfo(func_name, line_num, func_type, has_doc, signature))
@@ -348,11 +385,48 @@ def detect_python_functions(filepath: str) -> List[FunctionInfo]:
                 bases = class_match.group(2) or ""
                 signature = f"class {class_name}({bases}):" if bases else f"class {class_name}:"
                 
-                # Check if next line has docstring
+                # Check if class has docstring (check both before and after)
                 has_doc = False
-                if i + 1 < len(lines):
-                    next_line = lines[i + 1].strip()
-                    has_doc = next_line.startswith('"""') or next_line.startswith("'''")
+                
+                # First check after the class definition (standard Python)
+                for j in range(i + 1, min(i + 10, len(lines))):
+                    line_stripped = lines[j].strip()
+                    
+                    # Skip empty lines and comments
+                    if not line_stripped or line_stripped.startswith('#'):
+                        continue
+                    
+                    # Check if this line starts a docstring
+                    if line_stripped.startswith('"""') or line_stripped.startswith("'''"):
+                        has_doc = True
+                        break
+                    
+                    # If we hit actual code (not a docstring), stop looking
+                    if not line_stripped.startswith('"""') and not line_stripped.startswith("'''"):
+                        # This is actual code, no docstring found after
+                        break
+                
+                # If not found after, check before the class definition (non-standard but supported)
+                if not has_doc:
+                    for j in range(max(0, i - 20), i):
+                        line_stripped = lines[j].strip()
+                        
+                        # Check if this line starts a docstring
+                        if line_stripped.startswith('"""') or line_stripped.startswith("'''"):
+                            # Make sure this docstring ends before our class
+                            docstring_found = False
+                            for k in range(j + 1, i):
+                                check_line = lines[k].strip()
+                                if check_line.endswith('"""') or check_line.endswith("'''"):
+                                    docstring_found = True
+                                    break
+                                elif check_line and not check_line.startswith('#') and ('class ' in check_line or 'def ' in check_line):
+                                    # Hit another function/class, this docstring isn't for our class
+                                    break
+                            
+                            if docstring_found:
+                                has_doc = True
+                                break
                 
                 functions.append(FunctionInfo(class_name, line_num, 'class', has_doc, signature))
         

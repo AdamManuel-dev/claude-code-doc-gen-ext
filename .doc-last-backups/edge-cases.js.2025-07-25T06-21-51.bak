@@ -71,11 +71,6 @@ class EmptyClass {}
  * Parser.
  */
 class Parser {
-    /**
-     * if.
-     * @param {*} condition - The condition.
-     * @returns {*} The result.
-     */
     if(condition) {
         // This is actually a method named 'if'
         return condition;
@@ -96,10 +91,6 @@ const singleParam = x => x * 2;
 
 // Object method shorthand
 const obj = {
-    /**
-     * method.
-     * @returns {*} The result.
-     */
     method() {
         return "shorthand";
     }

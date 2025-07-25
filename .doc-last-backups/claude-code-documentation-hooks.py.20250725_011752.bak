@@ -14,13 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 class DocumentationHook:
-    """
-    Documentationhook.
-    """
     def __init__(self):
-        """
-        Initializes a new instance.
-        """
         self.state_file = ".claude/state/last-modified-files.json"
         self.ensure_directories()
     
