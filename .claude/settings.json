@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ${PROJECT_ROOT}/.claude/hooks/post-edit-doc-check.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ${PROJECT_ROOT}/.claude/hooks/documentation-reminder.py"
+          }
+        ]
+      }
+    ]
+  },
+  "environment": {
+    "PROJECT_ROOT": "${pwd}"
+  }
+}

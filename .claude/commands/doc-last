@@ -90,6 +90,19 @@ Examples:
                        action='version',
                        version=f'%(prog)s {VERSION}')
     
+    # Additional modes
+    parser.add_argument('--recent',
+                       action='store_true',
+                       help='Document files modified in the last 5 minutes')
+    
+    parser.add_argument('--staged',
+                       action='store_true',
+                       help='Document files currently staged in git')
+    
+    parser.add_argument('--all',
+                       action='store_true',
+                       help='Document all supported files in the project')
+    
     return parser.parse_args()
 
 def is_git_repository() -> bool:
@@ -140,6 +153,43 @@ def get_git_changed_files() -> List[str]:
                       and Path(f).exists()]
     
     return supported_files
+
+def get_staged_files() -> List[str]:
+    """Get files currently staged in git."""
+    try:
+        result = subprocess.run(['git', 'diff', '--cached', '--name-only'],
+                              capture_output=True, text=True, check=True)
+        if result.stdout.strip():
+            files = result.stdout.strip().split('\n')
+            # Filter by supported extensions
+            return [f for f in files 
+                   if Path(f).suffix.lower() in SUPPORTED_EXTENSIONS
+                   and Path(f).exists()]
+    except subprocess.CalledProcessError:
+        pass
+    return []
+
+def get_all_project_files() -> List[str]:
+    """Get all supported files in the project."""
+    all_files = []
+    
+    # Search current directory and subdirectories
+    for root, dirs, files in os.walk('.'):
+        # Skip hidden directories and common non-code directories
+        dirs[:] = [d for d in dirs if not d.startswith('.') 
+                  and d not in ['node_modules', '__pycache__', 'venv', 'env', 
+                               'build', 'dist', 'coverage', '.git']]
+        
+        for file in files:
+            filepath = os.path.join(root, file)
+            
+            # Check if file has supported extension
+            if Path(filepath).suffix.lower() in SUPPORTED_EXTENSIONS:
+                # Convert to relative path
+                rel_path = os.path.relpath(filepath)
+                all_files.append(rel_path)
+    
+    return all_files
 
 def get_recently_modified_files(minutes: int = 5) -> List[str]:
     """Get files modified in the last N minutes (fallback when not in git repo)."""
@@ -440,22 +490,63 @@ def insert_documentation(filepath: str, func_info: FunctionInfo, doc_text: str) 
         with open(filepath, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         
-        # Calculate insertion point
-        insert_line = func_info.line_number - 1
+        ext = Path(filepath).suffix.lower()
         
-        # Get indentation from the function/class line
-        if insert_line < len(lines):
-            indent_match = re.match(r'^(\s*)', lines[insert_line])
-            indent = indent_match.group(1) if indent_match else ''
+        # For Python files, insert docstring AFTER the function/class declaration
+        if ext in ['.py', '.pyw']:
+            # Find the line with the colon that ends the declaration
+            insert_line = func_info.line_number - 1
+            
+            # Get the declaration line
+            if insert_line < len(lines):
+                decl_line = lines[insert_line]
+                
+                # Get base indentation from the declaration
+                indent_match = re.match(r'^(\s*)', decl_line)
+                base_indent = indent_match.group(1) if indent_match else ''
+                
+                # For Python, we need to add one more level of indentation
+                if decl_line.strip().startswith('class'):
+                    # Classes typically use 4 spaces
+                    inner_indent = base_indent + '    '
+                else:
+                    # Functions/methods - detect indentation from next non-empty line if possible
+                    inner_indent = base_indent + '    '
+                    
+                    # Try to detect actual indentation from the function body
+                    for i in range(insert_line + 1, min(insert_line + 10, len(lines))):
+                        if lines[i].strip() and not lines[i].strip().startswith('#'):
+                            body_indent_match = re.match(r'^(\s*)', lines[i])
+                            if body_indent_match:
+                                inner_indent = body_indent_match.group(1)
+                                break
+                
+                # Add indentation to each line of the docstring
+                doc_lines = doc_text.split('\n')
+                indented_doc = '\n'.join(inner_indent + line if line else '' for line in doc_lines)
+                
+                # Insert after the declaration line
+                lines.insert(insert_line + 1, indented_doc + '\n')
+            else:
+                return False
+        
         else:
-            indent = ''
-        
-        # Add indentation to each line of the documentation
-        doc_lines = doc_text.split('\n')
-        indented_doc = '\n'.join(indent + line if line else '' for line in doc_lines)
-        
-        # Insert the documentation
-        lines.insert(insert_line, indented_doc + '\n')
+            # For JavaScript/TypeScript, insert BEFORE the declaration (original behavior)
+            insert_line = func_info.line_number - 1
+            
+            # Get indentation from the function/class line
+            if insert_line < len(lines):
+                indent_match = re.match(r'^(\s*)', lines[insert_line])
+                indent = indent_match.group(1) if indent_match else ''
+            else:
+                indent = ''
+            
+            # Add indentation to each line of the documentation
+            doc_lines = doc_text.split('\n')
+            indented_doc = '\n'.join(indent + line if line else '' for line in doc_lines)
+            
+            # Insert the documentation before the declaration
+            lines.insert(insert_line, indented_doc + '\n')
         
         # Write back to file
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -584,23 +675,45 @@ def main():
         print(f"{Colors.BOLD}Claude Code Documentation Generator v{VERSION}{Colors.ENDC}")
         print(f"{Colors.HEADER}{'='*60}{Colors.ENDC}\n")
         
-        # Detect files to process
-        print(f"{Colors.CYAN}🔍 Detecting recently modified files...{Colors.ENDC}")
-        
+        # Detect files to process based on mode
         files_to_process = []
         
-        if is_git_repository():
+        if args.all:
+            print(f"{Colors.CYAN}🔍 Getting all supported files in the project...{Colors.ENDC}")
+            files_to_process = get_all_project_files()
             if args.verbose:
-                print(f"{Colors.BLUE}  Git repository detected{Colors.ENDC}")
-            files_to_process = get_git_changed_files()
-            
-            if not files_to_process:
-                print(f"{Colors.WARNING}  No changed files in git, checking recently modified files...{Colors.ENDC}")
-                files_to_process = get_recently_modified_files()
-        else:
-            if args.verbose:
-                print(f"{Colors.BLUE}  Not a git repository, checking recently modified files...{Colors.ENDC}")
+                print(f"{Colors.BLUE}  Found {len(files_to_process)} total files{Colors.ENDC}")
+        
+        elif args.staged:
+            print(f"{Colors.CYAN}🔍 Detecting staged files...{Colors.ENDC}")
+            if is_git_repository():
+                files_to_process = get_staged_files()
+                if not files_to_process:
+                    print(f"{Colors.WARNING}  No staged files found{Colors.ENDC}")
+            else:
+                print(f"{Colors.FAIL}  Error: Not a git repository{Colors.ENDC}")
+                return
+        
+        elif args.recent:
+            print(f"{Colors.CYAN}🔍 Detecting recently modified files (last 5 minutes)...{Colors.ENDC}")
             files_to_process = get_recently_modified_files()
+        
+        else:
+            # Default mode: last commit or recent files
+            print(f"{Colors.CYAN}🔍 Detecting recently modified files...{Colors.ENDC}")
+            
+            if is_git_repository():
+                if args.verbose:
+                    print(f"{Colors.BLUE}  Git repository detected{Colors.ENDC}")
+                files_to_process = get_git_changed_files()
+                
+                if not files_to_process:
+                    print(f"{Colors.WARNING}  No changed files in git, checking recently modified files...{Colors.ENDC}")
+                    files_to_process = get_recently_modified_files()
+            else:
+                if args.verbose:
+                    print(f"{Colors.BLUE}  Not a git repository, checking recently modified files...{Colors.ENDC}")
+                files_to_process = get_recently_modified_files()
         
         if not files_to_process:
             print(f"\n{Colors.WARNING}No files found that need documentation.{Colors.ENDC}")

@@ -3,7 +3,7 @@
 ## Bug #1: Python Docstrings Placement Issue
 **Date:** 2025-07-25
 **Severity:** Medium
-**Status:** Open
+**Status:** Fixed (2025-07-25)
 
 ### Description
 Python docstrings are being placed above the function definition instead of inside the function body after the def line. This violates PEP 257 conventions.
@@ -40,3 +40,10 @@ The insertion logic treats Python docstrings the same as JSDoc comments, placing
 
 ### Test Case
 Test with `test-samples/test-python.py` to verify fix.
+
+### Fix Applied
+Modified the `insert_documentation()` function in `.claude/commands/doc-last` to:
+1. Detect Python files by extension
+2. Insert docstrings after the function/class declaration line
+3. Apply proper indentation (base indent + 4 spaces)
+4. Detect actual indentation from function body when possible
