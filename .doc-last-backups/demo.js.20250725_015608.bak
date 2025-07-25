@@ -87,7 +87,7 @@ class APIClient {
      *   method: 'POST',
      *   body: { name: 'John', email: 'john@example.com' }
      * });
-     */
+     */"}
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const response = await fetch(url, {
@@ -102,10 +102,32 @@ class APIClient {
         return response.json();
     }
     
+    /**
+     * Gets the .
+     * @param {*} endpoint - The endpoint.
+     * @returns {*} The result.
+     */
+    /**
+     * Gets the .
+     * @param {*} endpoint - The endpoint.
+     * @returns {*} The result.
+     */
     get(endpoint) {
         return this.request(endpoint, { method: 'GET' });
     }
     
+    /**
+     * post.
+     * @param {*} endpoint - The endpoint.
+     * @param {*} data - The data.
+     * @returns {*} The result.
+     */
+    /**
+     * Post.
+     * @param {*} endpoint - The endpoint.
+     * @param {*} data - The data.
+     * @returns {*} The result.
+     */
     post(endpoint, data) {
         return this.request(endpoint, {
             method: 'POST',
@@ -114,6 +136,18 @@ class APIClient {
     }
 }
 
+/**
+ * debounce.
+ * @param {*} func - The func.
+ * @param {*} delay - The delay.
+ * @returns {*} The result.
+ */
+/**
+ * Debounce.
+ * @param {*} func - The func.
+ * @param {*} delay - The delay.
+ * @returns {*} The result.
+ */
 const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {

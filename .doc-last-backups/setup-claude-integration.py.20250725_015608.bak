@@ -25,25 +25,20 @@ class Colors:
     BOLD = '\033[1m'
 
 def print_header(message):
-    """Print a formatted header message."""
     print(f"\n{Colors.HEADER}{'='*60}{Colors.ENDC}")
     print(f"{Colors.BOLD}{message}{Colors.ENDC}")
     print(f"{Colors.HEADER}{'='*60}{Colors.ENDC}\n")
 
 def print_success(message):
-    """Print a success message with green checkmark."""
     print(f"{Colors.GREEN}✓ {message}{Colors.ENDC}")
 
 def print_warning(message):
-    """Print a warning message with warning symbol."""
     print(f"{Colors.WARNING}⚠ {message}{Colors.ENDC}")
 
 def print_error(message):
-    """Print an error message with X symbol."""
     print(f"{Colors.FAIL}✗ {message}{Colors.ENDC}")
 
 def print_info(message):
-    """Print an info message with info symbol."""
     print(f"{Colors.CYAN}ℹ {message}{Colors.ENDC}")
 
 def run_command(command, capture_output=True):
