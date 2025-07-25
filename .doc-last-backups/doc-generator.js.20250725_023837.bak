@@ -36,7 +36,83 @@ const SUPPORTED_EXTENSIONS = {
   '.cjs': 'jsdoc'
 };
 
+/**
+ * AST-based documentation generator for JavaScript, TypeScript, JSX, and TSX files.
+ * 
+ * This class automatically detects functions, methods, and classes that lack proper
+ * JSDoc documentation and generates comprehensive documentation based on code analysis.
+ * Supports git integration, backup creation, and optional Claude AI enhancement.
+ * 
+ * @example
+ * const generator = new DocumentationGenerator({ verbose: true, dryRun: false });
+ * generator.run();
+ */
+/**
+ * Documentationgenerator.
+ */
+/**
+ * Documentationgenerator.
+ */
+/**
+ * Documentationgenerator.
+ */
+/**
+ * Documentationgenerator.
+ */
+/**
+ * Documentationgenerator.
+ */
+/**
+ * Documentationgenerator.
+ */
+/**
+ * Documentationgenerator.
+ */
 class DocumentationGenerator {
+  /**
+   * Creates a new DocumentationGenerator instance with specified configuration.
+   * 
+   * @param {Object} [options={}] - Configuration options for the generator
+   * @param {boolean} [options.verbose=false] - Enable detailed console output during processing
+   * @param {boolean} [options.dryRun=false] - Preview changes without modifying files
+   * @param {boolean} [options.noEnhance=false] - Skip Claude AI enhancement step
+   * 
+   * @example
+   * // Create generator with verbose output
+   * const generator = new DocumentationGenerator({ verbose: true });
+   * 
+   * @example
+   * // Preview mode without file changes
+   * const generator = new DocumentationGenerator({ dryRun: true });
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} options - The options.
+   */
   constructor(options = {}) {
     this.verbose = options.verbose || false;
     this.dryRun = options.dryRun || false;
@@ -44,7 +120,47 @@ class DocumentationGenerator {
   }
 
   /**
-   * Get recently modified files from git or filesystem
+   * Discovers files that need documentation by checking git changes or recent modifications.
+   * 
+   * First attempts to find files changed in git (last commit, staged, or unstaged).
+   * If no git changes are found or not in a git repository, falls back to scanning
+   * for recently modified files (within 5 minutes by default).
+   * 
+   * @returns {string[]} Array of file paths with supported extensions that need documentation
+   * 
+   * @example
+   * const generator = new DocumentationGenerator();
+   * const files = generator.getFilesToProcess();
+   * console.log('Files to document:', files);
+   * // Output: ['src/utils.js', 'components/Button.tsx']
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the filestoprocess.
+   * @returns {*} The result.
    */
   getFilesToProcess() {
     let files = [];
@@ -71,6 +187,38 @@ class DocumentationGenerator {
     return files;
   }
 
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if gitrepository.
+   * @returns {*} The result.
+   */
   isGitRepository() {
     try {
       execSync('git rev-parse --git-dir', { stdio: 'ignore' });
@@ -80,6 +228,38 @@ class DocumentationGenerator {
     }
   }
 
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the gitchangedfiles.
+   * @returns {*} The result.
+   */
   getGitChangedFiles() {
     const files = new Set();
     
@@ -116,10 +296,90 @@ class DocumentationGenerator {
     });
   }
 
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the recentlymodifiedfiles.
+   * @param {*} minutes - The minutes.
+   * @returns {*} The result.
+   */
   getRecentlyModifiedFiles(minutes = 5) {
     const cutoffTime = Date.now() - (minutes * 60 * 1000);
     const files = [];
     
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
+    /**
+     * Scandir.
+     * @param {*} dir - The dir.
+     * @returns {*} The result.
+     */
     const scanDir = (dir) => {
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -147,7 +407,67 @@ class DocumentationGenerator {
   }
 
   /**
-   * Parse JavaScript/TypeScript file using Babel
+   * Parses a JavaScript/TypeScript file using Babel AST to extract function information.
+   * 
+   * Uses Babel parser with appropriate plugins for JavaScript, TypeScript, JSX, and modern
+   * syntax features. Traverses the AST to identify functions, methods, classes, and their
+   * documentation status. Handles various function types including arrow functions,
+   * class methods, object methods, and generators.
+   * 
+   * @param {string} filepath - Path to the file to parse
+   * @returns {Array<Object>} Array of function objects with metadata
+   * @returns {string} returns[].name - Function or method name
+   * @returns {number} returns[].line - Line number where function is defined
+   * @returns {string} returns[].type - Type: 'function', 'method', 'class'
+   * @returns {boolean} returns[].hasDoc - Whether function has JSDoc documentation
+   * @returns {string} returns[].signature - Function signature
+   * @returns {string[]} returns[].params - Parameter names
+   * @returns {boolean} returns[].isAsync - Whether function is async
+   * @returns {boolean} returns[].isGenerator - Whether function is a generator
+   * @returns {string[]} returns[].decorators - Decorator names if any
+   * 
+   * @throws {Error} If file cannot be read or parsed
+   * 
+   * @example
+   * const generator = new DocumentationGenerator();
+   * const functions = generator.parseFile('src/utils.js');
+   * console.log(functions[0]);
+   * // Output: { name: 'calculateTotal', line: 15, type: 'function', hasDoc: false, ... }
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Parsefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
    */
   parseFile(filepath) {
     const content = fs.readFileSync(filepath, 'utf8');
@@ -188,6 +508,46 @@ class DocumentationGenerator {
       const self = this;
       
       traverse(ast, {
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Enter.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
         enter(path) {
           const node = path.node;
           
@@ -233,6 +593,46 @@ class DocumentationGenerator {
             if (funcInfo) functions.push(funcInfo);
           }
         },
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
+        /**
+         * Exit.
+         * @param {*} path - The path.
+         * @returns {*} The result.
+         */
         exit(path) {
           if (t.isClassDeclaration(path.node) || t.isClassExpression(path.node)) {
             classDepth--;
@@ -251,25 +651,141 @@ class DocumentationGenerator {
     }
   }
   
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Checks if sjsdoc.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
   hasJSDoc(node, lines) {
     if (!node.loc) return false;
     
-    const lineAbove = node.loc.start.line - 2; // -1 for 0-indexed, -1 for line above
-    if (lineAbove >= 0 && lineAbove < lines.length) {
-      const line = lines[lineAbove];
-      return line.includes('*/');
+    // Check leadingComments first - this is more reliable
+    if (node.leadingComments) {
+      const hasJSDocComment = node.leadingComments.some(comment => 
+        comment.type === 'CommentBlock' && comment.value.trim().startsWith('*')
+      );
+      if (hasJSDocComment) return true;
     }
     
-    // Check leadingComments
-    if (node.leadingComments) {
-      return node.leadingComments.some(comment => 
-        comment.type === 'CommentBlock' && comment.value.startsWith('*')
-      );
+    // Fallback: check multiple lines above the function for JSDoc pattern
+    const startLine = node.loc.start.line - 1; // Convert to 0-indexed
+    
+    // Look back up to 10 lines to find a JSDoc comment
+    for (let i = 1; i <= Math.min(10, startLine); i++) {
+      const lineIndex = startLine - i;
+      if (lineIndex < 0) break;
+      
+      const line = lines[lineIndex].trim();
+      
+      // Found end of JSDoc comment
+      if (line === '*/') {
+        // Look for the start of JSDoc comment
+        for (let j = lineIndex; j >= Math.max(0, lineIndex - 20); j--) {
+          const checkLine = lines[j].trim();
+          if (checkLine.startsWith('/**')) {
+            return true;
+          }
+          // If we hit another function or class, stop looking
+          if (checkLine.includes('function ') || checkLine.includes('class ') || 
+              checkLine.includes('=>') || checkLine.includes('constructor(')) {
+            break;
+          }
+        }
+      }
+      
+      // If we hit another function or class definition, stop looking
+      if (line.includes('function ') || line.includes('class ') || 
+          line.includes('=>') || line.includes('constructor(')) {
+        break;
+      }
     }
     
     return false;
   }
   
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
+  /**
+   * Gets the decorators.
+   * @param {*} node - The node.
+   * @returns {*} The result.
+   */
   getDecorators(node) {
     if (!node.decorators) return [];
     return node.decorators.map(dec => {
@@ -283,6 +799,70 @@ class DocumentationGenerator {
     });
   }
   
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractfunctioninfo.
+   * @param {*} node - The node.
+   * @param {*} path - The path.
+   * @param {*} lines - The lines.
+   * @param {*} currentClass - The currentClass.
+   * @returns {*} The result.
+   */
   extractFunctionInfo(node, path, lines, currentClass) {
     let name = '<anonymous>';
     let type = currentClass ? 'method' : 'function';
@@ -352,6 +932,54 @@ class DocumentationGenerator {
     };
   }
   
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
+  /**
+   * Extractmethodinfo.
+   * @param {*} node - The node.
+   * @param {*} lines - The lines.
+   * @returns {*} The result.
+   */
   extractMethodInfo(node, lines) {
     let name = '<anonymous>';
     
@@ -400,6 +1028,41 @@ class DocumentationGenerator {
   /**
    * Analyze a file for undocumented functions
    */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
+  /**
+   * Analyzefile.
+   * @param {*} filepath - The filepath.
+   * @returns {*} The result.
+   */
   analyzeFile(filepath) {
     const functions = this.parseFile(filepath);
     const undocumented = functions.filter(f => !f.hasDoc);
@@ -415,7 +1078,75 @@ class DocumentationGenerator {
   }
 
   /**
-   * Generate JSDoc for a function
+   * Generates comprehensive JSDoc comment for a function based on its metadata.
+   * 
+   * Creates intelligent descriptions based on function naming patterns (get*, set*, is*, has*,
+   * handle*, on*, etc.) and adds appropriate @param and @returns tags. Handles special cases
+   * for React components, lifecycle methods, constructors, and generator functions.
+   * 
+   * @param {Object} func - Function metadata object from parseFile()
+   * @param {string} func.name - Function name
+   * @param {string} func.type - Function type ('function', 'method', 'class')
+   * @param {string[]} func.params - Parameter names
+   * @param {boolean} func.isAsync - Whether function is async
+   * @param {boolean} func.isGenerator - Whether function is a generator
+   * @param {string[]} func.decorators - Decorator names if any
+   * 
+   * @returns {string} Complete JSDoc comment block ready for insertion
+   * 
+   * @example
+   * const funcMetadata = {
+   *   name: 'getUserById',
+   *   type: 'function',
+   *   params: ['id', 'options'],
+   *   isAsync: true,
+   *   isGenerator: false,
+   *   decorators: []
+   * };
+   * const jsdoc = generator.generateJSDoc(funcMetadata);
+   * console.log(jsdoc);
+   * // Output:
+   * // /**
+   * //  * Gets the user by id.
+   * //  * @param {*} id - The id.
+   * //  * @param {*} options - The options.
+   * //  * @returns {*} The result.
+   * //  *\/
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
+   */
+  /**
+   * Generatejsdoc.
+   * @param {*} func - The func.
+   * @returns {*} The result.
    */
   generateJSDoc(func) {
     const lines = ['/**'];
@@ -491,6 +1222,46 @@ class DocumentationGenerator {
     return lines.join('\n');
   }
   
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
+  /**
+   * Cameltowords.
+   * @param {*} str - The str.
+   * @returns {*} The result.
+   */
   camelToWords(str) {
     if (!str) return '';
     return str
@@ -501,6 +1272,55 @@ class DocumentationGenerator {
 
   /**
    * Insert documentation into file
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
+   */
+  /**
+   * Insertdocumentation.
+   * @param {*} filepath - The filepath.
+   * @param {*} func - The func.
+   * @param {*} docText - The docText.
+   * @returns {*} The result.
    */
   insertDocumentation(filepath, func, docText) {
     try {
@@ -533,6 +1353,41 @@ class DocumentationGenerator {
   /**
    * Process file and add documentation
    */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
+  /**
+   * Processfile.
+   * @param {*} analysis - The analysis.
+   * @returns {*} The result.
+   */
   processFile(analysis) {
     const results = { processed: 0, failed: 0 };
     
@@ -560,6 +1415,41 @@ class DocumentationGenerator {
   /**
    * Create backup of files
    */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Createbackups.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
   createBackups(files) {
     const backupDir = '.doc-last-backups';
     if (!fs.existsSync(backupDir)) {
@@ -583,6 +1473,41 @@ class DocumentationGenerator {
 
   /**
    * Enhance documentation with Claude
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
+   */
+  /**
+   * Enhancewithclaude.
+   * @param {*} files - The files.
+   * @returns {*} The result.
    */
   enhanceWithClaude(files) {
     const promptPath = '.claude-doc-enhance-prompt.md';
@@ -613,18 +1538,18 @@ Guidelines:
 
       fs.writeFileSync(promptPath, prompt);
       
-      // Build claude command
-      const args = ['claude'];
-      files.forEach(f => args.push('-f', f));
-      args.push('-f', promptPath);
-      args.push('Please enhance the documentation in the files listed in the prompt.');
+      // Build claude command with proper file arguments
+      const fileArgs = files.join(' ');
+      const command = `claude ${fileArgs} "${promptPath}"`;
       
       if (this.verbose) {
-        console.log(`${Colors.BLUE}Running: ${args.join(' ')}${Colors.ENDC}`);
+        console.log(`${Colors.BLUE}Running: ${command}${Colors.ENDC}`);
       }
       
       console.log(`${Colors.CYAN}Calling Claude Code to enhance documentation...${Colors.ENDC}`);
-      const result = spawnSync(args[0], args.slice(1), { encoding: 'utf8' });
+      const result = spawnSync('sh', ['-c', command], { 
+        encoding: 'utf8'
+      });
       
       if (result.status === 0) {
         console.log(`${Colors.GREEN}✓ Claude Code successfully enhanced the documentation${Colors.ENDC}`);
@@ -652,7 +1577,58 @@ Guidelines:
   }
 
   /**
-   * Main run method
+   * Executes the complete documentation generation workflow.
+   * 
+   * Main orchestration method that:
+   * 1. Discovers files to process (git changes or recently modified)
+   * 2. Analyzes each file for undocumented functions
+   * 3. Creates backups of files that will be modified
+   * 4. Generates and inserts JSDoc comments
+   * 5. Optionally enhances documentation using Claude AI
+   * 6. Generates a comprehensive report
+   * 
+   * Handles both dry-run mode (preview only) and actual file modification.
+   * Creates detailed console output with color coding and progress indicators.
+   * 
+   * @returns {void} No return value - operates via side effects and console output
+   * 
+   * @example
+   * // Basic usage
+   * const generator = new DocumentationGenerator();
+   * generator.run();
+   * 
+   * @example
+   * // Dry run to preview changes
+   * const generator = new DocumentationGenerator({ dryRun: true });
+   * generator.run();
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
+   */
+  /**
+   * Run.
+   * @returns {*} The result.
    */
   run() {
     console.log(`${Colors.HEADER}${'='.repeat(60)}${Colors.ENDC}`);

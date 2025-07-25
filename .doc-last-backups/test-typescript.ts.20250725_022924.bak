@@ -1,0 +1,84 @@
+// Test TypeScript file with interfaces and generics
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    price: number;
+}
+
+/**
+ * find By Id.
+ * @param {*} items - The items.
+ * @param {*} id - The id.
+ * @returns {*} The result.
+ */
+function findById<T extends { id: number }>(items: T[], id: number): T | undefined {
+    return items.find(item => item.id === id);
+}
+
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+export class UserService {
+    private users: User[] = [];
+    
+    /**
+     * Creates a new instance.
+     * @param {*} param - The param.
+     */
+    constructor(private readonly apiUrl: string) {}
+    
+    /**
+     * fetch Users.
+     * @returns {*} The result.
+     */
+    async fetchUsers(): Promise<User[]> {
+        const response = await fetch(`${this.apiUrl}/users`);
+        this.users = await response.json();
+        return this.users;
+    }
+    
+    /**
+     * Gets the User By Email.
+     * @param {*} email - The email.
+     * @returns {*} The result.
+     */
+    getUserByEmail(email: string): User | undefined {
+        return this.users.find(user => user.email === email);
+    }
+    
+    /**
+     * Checks if Valid Email.
+     * @param {*} email - The email.
+     * @returns {*} The result.
+     */
+    isValidEmail(email: string): boolean {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+}
+
+/**
+ * process Order.
+ * @param {*} userId - The user Id.
+ * @param {*} products - The products.
+ * @returns {*} The result.
+ */
+const processOrder = async (userId: number, products: Product[]): Promise<void> => {
+    const total = products.reduce((sum, product) => sum + product.price, 0);
+    await sendInvoice(userId, total);
+};
+
+export { findById, processOrder };

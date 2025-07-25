@@ -672,46 +672,35 @@ def process_file_documentation(analysis: Dict[str, Any], dry_run: bool = False) 
 def enhance_with_claude(files: List[str], verbose: bool = False):
     """Use Claude Code CLI to enhance the generated documentation."""
     try:
-        # Create a prompt file for Claude
-        prompt_path = Path(".claude-doc-enhance-prompt.md")
+        # Create a comprehensive prompt that references the files
+        prompt = f"""I've added basic JSDoc/docstring templates to the following files. Please enhance them with meaningful descriptions based on the actual code logic:
+
+Files to enhance:
+{chr(10).join(f'- {filepath}' for filepath in files)}
+
+For each file, please:
+- Review the generated documentation
+- Replace generic descriptions with specific ones based on the code
+- Add @example tags for complex functions where helpful
+- Add @throws/@raises tags where appropriate
+- For classes, add detailed descriptions of their purpose
+- Ensure parameter descriptions are meaningful
+- Update return descriptions to be specific about what's returned
+
+Guidelines:
+- Keep descriptions concise but informative  
+- Use proper grammar and punctuation
+- Focus on the 'why' and 'what' rather than the 'how'
+- Add type information where it's not obvious
+- Include edge cases in descriptions where relevant
+
+Please enhance the documentation in these files, making the descriptions meaningful and specific to the actual code implementation."""
         
-        with open(prompt_path, 'w') as f:
-            f.write("# Enhance Documentation\n\n")
-            f.write("I've added basic JSDoc/docstring templates to the following files. ")
-            f.write("Please enhance them with meaningful descriptions based on the actual code logic:\n\n")
-            
-            for filepath in files:
-                f.write(f"## {filepath}\n")
-                f.write("- Review the generated documentation\n")
-                f.write("- Replace generic descriptions with specific ones based on the code\n")
-                f.write("- Add @example tags for complex functions\n")
-                f.write("- Add @throws tags where appropriate\n")
-                f.write("- For classes, add detailed descriptions of their purpose\n")
-                f.write("- Ensure parameter descriptions are meaningful\n")
-                f.write("- Update return descriptions to be specific about what's returned\n\n")
-            
-            f.write("Guidelines:\n")
-            f.write("- Keep descriptions concise but informative\n")
-            f.write("- Use proper grammar and punctuation\n")
-            f.write("- Focus on the 'why' and 'what' rather than the 'how'\n")
-            f.write("- Add type information where it's not obvious\n")
-            f.write("- Include edge cases in descriptions where relevant\n")
-        
-        # Prepare the claude command
-        claude_cmd = ['claude']
-        
-        # Add files to the command
-        for filepath in files:
-            claude_cmd.extend(['-f', filepath])
-        
-        # Add the prompt file
-        claude_cmd.extend(['-f', str(prompt_path)])
-        
-        # Add the instruction
-        claude_cmd.append("Please enhance the documentation in the files listed in the prompt. Focus on making the descriptions meaningful and specific to the actual code implementation.")
+        # Prepare the claude command with --print flag for non-interactive output
+        claude_cmd = ['claude', '--print', prompt]
         
         if verbose:
-            print(f"{Colors.BLUE}Running: {' '.join(claude_cmd)}{Colors.ENDC}")
+            print(f"{Colors.BLUE}Running: claude --print [prompt]{Colors.ENDC}")
         
         # Execute Claude Code
         print(f"{Colors.CYAN}Calling Claude Code to enhance documentation...{Colors.ENDC}")
@@ -719,10 +708,8 @@ def enhance_with_claude(files: List[str], verbose: bool = False):
         
         if result.returncode == 0:
             print(f"{Colors.GREEN}✓ Claude Code successfully enhanced the documentation{Colors.ENDC}")
-            
-            # Clean up prompt file
-            if prompt_path.exists():
-                prompt_path.unlink()
+            if verbose and result.stdout:
+                print(f"{Colors.BLUE}Claude response:\n{result.stdout[:500]}...{Colors.ENDC}")
         else:
             print(f"{Colors.WARNING}⚠️  Claude Code enhancement failed{Colors.ENDC}")
             if result.stderr:
@@ -732,7 +719,7 @@ def enhance_with_claude(files: List[str], verbose: bool = False):
             check_claude = subprocess.run(['which', 'claude'], capture_output=True)
             if check_claude.returncode != 0:
                 print(f"{Colors.CYAN}Note: 'claude' command not found. Make sure Claude Code CLI is installed.{Colors.ENDC}")
-                print(f"{Colors.CYAN}You can manually run: claude -f <file1> -f <file2> ... with a documentation enhancement prompt{Colors.ENDC}")
+                print(f"{Colors.CYAN}You can manually enhance the documentation using Claude Code CLI{Colors.ENDC}")
     
     except Exception as e:
         print(f"{Colors.WARNING}Could not enhance with Claude Code: {e}{Colors.ENDC}")

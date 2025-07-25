@@ -1,0 +1,261 @@
+import React, { useState, useEffect, useCallback } from 'react';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  role: 'admin' | 'user' | 'guest';
+}
+
+interface UserProfileProps {
+  userId: string;
+  onUpdate?: (user: User) => void;
+  className?: string;
+}
+
+/**
+ * User Profile.
+ * @param {*} {} - The {}.
+ * @returns {*} The result.
+ */
+export const UserProfile: React.FC<UserProfileProps> = ({ userId, onUpdate, className }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchUser(userId);
+  }, [userId]);
+
+  /**
+   * fetch User.
+   * @param {*} id - The id.
+   * @returns {*} The result.
+   */
+  /**
+   * Fetchuser.
+   * @param {*} id: string - The id: string.
+   * @returns {*} The result.
+   */
+  /**
+   * Fetchuser.
+   * @param {*} id: string - The id: string.
+   * @returns {*} The result.
+   */
+  /**
+   * Fetchuser.
+   * @param {*} id: string - The id: string.
+   * @returns {*} The result.
+   */
+  /**
+   * Fetchuser.
+   * @param {*} id: string - The id: string.
+   * @returns {*} The result.
+   */
+  /**
+   * Fetchuser.
+   * @param {*} id: string - The id: string.
+   * @returns {*} The result.
+   */
+  /**
+   * Fetchuser.
+   * @param {*} id: string - The id: string.
+   * @returns {*} The result.
+   */
+  async function fetchUser(id: string) {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/users/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      const data = await response.json();
+      setUser(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleUpdateName = useCallback((newName: string) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, name: newName };
+    setUser(updatedUser);
+    onUpdate?.(updatedUser);
+  }, [user, onUpdate]);
+
+  /**
+   * Handles Delete Account events.
+   * @returns {*} The result.
+   */
+  const handleDeleteAccount = async () => {
+    if (!user || !confirm('Are you sure?')) return;
+    
+    try {
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setUser(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete account:', err);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!user) return <div>User not found</div>;
+
+  return (
+    <div className={`user-profile ${className || ''}`}>
+      <img 
+        src={user.avatar || '/default-avatar.png'} 
+        alt={user.name}
+        className="avatar"
+      />
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+      <span className={`role role-${user.role}`}>{user.role}</span>
+      
+      <button onClick={() => handleUpdateName(prompt('New name:') || user.name)}>
+        Edit Name
+      </button>
+      
+      {user.role === 'admin' && (
+        <button onClick={handleDeleteAccount} className="danger">
+          Delete Account
+        </button>
+      )}
+    </div>
+  );
+};
+
+/**
+ * use User Permissions.
+ * @param {*} user - The user.
+ * @returns {*} The result.
+ */
+/**
+ * Useuserpermissions.
+ * @param {*} user: User | null - The user: User | null.
+ * @returns {*} The result.
+ */
+/**
+ * Useuserpermissions.
+ * @param {*} user: User | null - The user: User | null.
+ * @returns {*} The result.
+ */
+/**
+ * Useuserpermissions.
+ * @param {*} user: User | null - The user: User | null.
+ * @returns {*} The result.
+ */
+/**
+ * Useuserpermissions.
+ * @param {*} user: User | null - The user: User | null.
+ * @returns {*} The result.
+ */
+/**
+ * Useuserpermissions.
+ * @param {*} user: User | null - The user: User | null.
+ * @returns {*} The result.
+ */
+/**
+ * Useuserpermissions.
+ * @param {*} user: User | null - The user: User | null.
+ * @returns {*} The result.
+ */
+export function useUserPermissions(user: User | null) {
+  const canEdit = user?.role === 'admin' || user?.role === 'user';
+  const canDelete = user?.role === 'admin';
+  
+  return { canEdit, canDelete };
+}
+
+/**
+ * User Service.
+ */
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+/**
+ * Userservice.
+ */
+class UserService {
+  private apiBase: string;
+  
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The api Base.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The apiBase.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The apiBase.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The apiBase.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The apiBase.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The apiBase.
+   */
+  /**
+   * Creates a new instance.
+   * @param {*} apiBase - The apiBase.
+   */
+  constructor(apiBase = '/api') {
+    this.apiBase = apiBase;
+  }
+  
+  /**
+   * Gets the All Users.
+   * @returns {*} The result.
+   */
+  async getAllUsers(): Promise<User[]> {
+    const response = await fetch(`${this.apiBase}/users`);
+    return response.json();
+  }
+  
+  /**
+   * update User.
+   * @param {*} id - The id.
+   * @param {*} updates - The updates.
+   * @returns {*} The result.
+   */
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
+    const response = await fetch(`${this.apiBase}/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    return response.json();
+  }
+}
+
+export default UserService;
