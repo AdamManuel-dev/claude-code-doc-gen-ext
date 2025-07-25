@@ -1,6 +1,7 @@
 # Documentation Report
 
-**Generated:** 2025-07-25 00:40:42
+**Generated:** 2025-07-25T05:49:31.950Z
+**Parser:** Babel AST
 
 ## Summary
 
@@ -10,6 +11,5 @@
 
 ## Files Processed
 
-### demo.js
+### UserProfile.tsx
 - Functions documented: 8
-

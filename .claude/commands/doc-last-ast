@@ -1,0 +1,1043 @@
+#!/usr/bin/env python3
+"""
+Claude Code Documentation Extension - /doc-last command (AST version)
+
+Automatically generates documentation for recently modified files using AST parsing.
+Supports JavaScript/TypeScript (using esprima) and Python (using ast module).
+
+Usage: /doc-last [options]
+
+Options:
+  -h, --help       Show this help message
+  -v, --verbose    Show detailed output
+  -n, --dry-run    Show what would be done without making changes
+  --no-enhance     Skip Claude Code enhancement step
+  
+Examples:
+  /doc-last              # Document files from last commit
+  /doc-last --dry-run    # Preview changes without modifying files
+  /doc-last --verbose    # Show detailed progress
+"""
+
+import sys
+import os
+import argparse
+import subprocess
+import json
+import ast
+from datetime import datetime
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Tuple, Union
+import shutil
+from collections import defaultdict
+from dataclasses import dataclass, field
+
+# Version info
+VERSION = "2.0.0"
+COMMAND_NAME = "doc-last"
+
+# Supported file extensions and their documentation styles
+SUPPORTED_EXTENSIONS = {
+    '.js': 'jsdoc',
+    '.jsx': 'jsdoc',
+    '.ts': 'jsdoc',
+    '.tsx': 'jsdoc',
+    '.mjs': 'jsdoc',
+    '.cjs': 'jsdoc',
+    '.py': 'python',
+    '.pyw': 'python'
+}
+
+# Color codes for terminal output
+class Colors:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+@dataclass
+class FunctionInfo:
+    """Information about a detected function or class."""
+    name: str
+    line_number: int
+    type: str  # 'function', 'class', 'method'
+    has_doc: bool
+    signature: str = ""
+    params: List[str] = field(default_factory=list)
+    is_async: bool = False
+    is_generator: bool = False
+    decorators: List[str] = field(default_factory=list)
+
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        prog=COMMAND_NAME,
+        description='Generate documentation for recently modified files using AST',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s              # Document files from last commit
+  %(prog)s --dry-run    # Preview changes without modifying files
+  %(prog)s --verbose    # Show detailed progress
+        """
+    )
+    
+    parser.add_argument('-v', '--verbose', 
+                       action='store_true',
+                       help='Show detailed output')
+    
+    parser.add_argument('-n', '--dry-run',
+                       action='store_true',
+                       help='Show what would be done without making changes')
+    
+    parser.add_argument('--no-enhance',
+                       action='store_true',
+                       help='Skip Claude Code enhancement step')
+    
+    parser.add_argument('--version',
+                       action='version',
+                       version=f'%(prog)s {VERSION}')
+    
+    return parser.parse_args()
+
+def is_git_repository() -> bool:
+    """Check if current directory is a git repository."""
+    try:
+        result = subprocess.run(['git', 'rev-parse', '--git-dir'], 
+                              capture_output=True, text=True, check=False)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+def get_git_changed_files() -> List[str]:
+    """Get list of changed files from git."""
+    changed_files = []
+    
+    # Try to get files from last commit
+    try:
+        result = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'],
+                              capture_output=True, text=True, check=True)
+        if result.stdout.strip():
+            changed_files.extend(result.stdout.strip().split('\n'))
+    except subprocess.CalledProcessError:
+        pass
+    
+    # Also get unstaged changes
+    try:
+        result = subprocess.run(['git', 'diff', '--name-only'],
+                              capture_output=True, text=True, check=True)
+        if result.stdout.strip():
+            changed_files.extend(result.stdout.strip().split('\n'))
+    except subprocess.CalledProcessError:
+        pass
+    
+    # Get staged changes
+    try:
+        result = subprocess.run(['git', 'diff', '--cached', '--name-only'],
+                              capture_output=True, text=True, check=True)
+        if result.stdout.strip():
+            changed_files.extend(result.stdout.strip().split('\n'))
+    except subprocess.CalledProcessError:
+        pass
+    
+    # Remove duplicates and filter by supported extensions
+    unique_files = list(set(changed_files))
+    supported_files = [f for f in unique_files 
+                      if Path(f).suffix.lower() in SUPPORTED_EXTENSIONS
+                      and Path(f).exists()]
+    
+    return supported_files
+
+def get_recently_modified_files(minutes: int = 5) -> List[str]:
+    """Get files modified in the last N minutes (fallback when not in git repo)."""
+    import time
+    current_time = time.time()
+    cutoff_time = current_time - (minutes * 60)
+    
+    recent_files = []
+    
+    # Search current directory and subdirectories
+    for root, dirs, files in os.walk('.'):
+        # Skip hidden directories
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        
+        for file in files:
+            filepath = os.path.join(root, file)
+            
+            # Check if file has supported extension
+            if Path(filepath).suffix.lower() not in SUPPORTED_EXTENSIONS:
+                continue
+            
+            # Check modification time
+            try:
+                mtime = os.path.getmtime(filepath)
+                if mtime > cutoff_time:
+                    # Convert to relative path
+                    rel_path = os.path.relpath(filepath)
+                    recent_files.append(rel_path)
+            except OSError:
+                continue
+    
+    return recent_files
+
+def has_docstring_python(node: ast.AST, source_lines: List[str]) -> bool:
+    """Check if a Python function/class has a docstring."""
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        # Check if first statement is a string literal (docstring)
+        if (node.body and 
+            isinstance(node.body[0], ast.Expr) and 
+            isinstance(node.body[0].value, (ast.Str, ast.Constant))):
+            return True
+    return False
+
+def detect_python_functions_ast(filepath: str) -> List[FunctionInfo]:
+    """Detect functions and classes in Python files using AST."""
+    functions = []
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            source = f.read()
+            source_lines = source.splitlines()
+        
+        tree = ast.parse(source, filename=filepath)
+        
+        class FunctionVisitor(ast.NodeVisitor):
+            def __init__(self, parent_class=None):
+                self.parent_class = parent_class
+                self.functions = []
+            
+            def visit_FunctionDef(self, node):
+                self._process_function(node, is_async=False)
+                self.generic_visit(node)
+            
+            def visit_AsyncFunctionDef(self, node):
+                self._process_function(node, is_async=True)
+                self.generic_visit(node)
+            
+            def _process_function(self, node, is_async):
+                # Get function parameters
+                params = []
+                for arg in node.args.args:
+                    params.append(arg.arg)
+                
+                # Check for decorators
+                decorators = [d.id if isinstance(d, ast.Name) else ast.unparse(d) 
+                             for d in node.decorator_list]
+                
+                # Determine if it's a generator
+                is_generator = any(isinstance(n, (ast.Yield, ast.YieldFrom)) 
+                                 for n in ast.walk(node))
+                
+                # Build signature
+                param_str = ', '.join(params)
+                async_prefix = "async " if is_async else ""
+                signature = f"{async_prefix}def {node.name}({param_str}):"
+                
+                # Check for docstring
+                has_doc = has_docstring_python(node, source_lines)
+                
+                # Determine type
+                func_type = 'method' if self.parent_class else 'function'
+                
+                func_info = FunctionInfo(
+                    name=node.name,
+                    line_number=node.lineno,
+                    type=func_type,
+                    has_doc=has_doc,
+                    signature=signature,
+                    params=params,
+                    is_async=is_async,
+                    is_generator=is_generator,
+                    decorators=decorators
+                )
+                
+                self.functions.append(func_info)
+            
+            def visit_ClassDef(self, node):
+                # Process the class itself
+                has_doc = has_docstring_python(node, source_lines)
+                
+                class_info = FunctionInfo(
+                    name=node.name,
+                    line_number=node.lineno,
+                    type='class',
+                    has_doc=has_doc,
+                    signature=f"class {node.name}:",
+                    decorators=[d.id if isinstance(d, ast.Name) else ast.unparse(d) 
+                               for d in node.decorator_list]
+                )
+                
+                self.functions.append(class_info)
+                
+                # Visit methods within the class
+                method_visitor = FunctionVisitor(parent_class=node.name)
+                for item in node.body:
+                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        method_visitor.visit(item)
+                
+                self.functions.extend(method_visitor.functions)
+        
+        visitor = FunctionVisitor()
+        visitor.visit(tree)
+        functions = visitor.functions
+        
+    except Exception as e:
+        print(f"{Colors.WARNING}Warning: Could not parse {filepath}: {e}{Colors.ENDC}")
+    
+    return functions
+
+def detect_javascript_functions_babel(filepath: str) -> List[FunctionInfo]:
+    """Detect functions and classes in JavaScript files using Babel parser via Node.js."""
+    functions = []
+    
+    # Create a temporary Node.js script to parse JavaScript
+    parser_script = '''
+const fs = require('fs');
+const parser = require('@babel/parser');
+const traverse = require('@babel/traverse').default;
+
+const code = fs.readFileSync(process.argv[2], 'utf8');
+
+try {
+    const ast = parser.parse(code, {
+        sourceType: 'module',
+        plugins: [
+            'jsx',
+            'typescript',
+            'decorators-legacy',
+            'classProperties',
+            'asyncGenerators',
+            'objectRestSpread',
+            'dynamicImport',
+            'optionalChaining',
+            'nullishCoalescingOperator'
+        ]
+    });
+
+    const functions = [];
+    let currentClass = null;
+
+    traverse(ast, {
+        enter(path) {
+            if (path.isClassDeclaration() || path.isClassExpression()) {
+                const node = path.node;
+                currentClass = node.id ? node.id.name : '<anonymous>';
+                
+                // Check for JSDoc
+                const hasDoc = node.leadingComments && 
+                              node.leadingComments.some(c => c.type === 'CommentBlock' && c.value.startsWith('*'));
+                
+                functions.push({
+                    name: currentClass,
+                    line: node.loc.start.line,
+                    type: 'class',
+                    hasDoc: hasDoc,
+                    signature: `class ${currentClass}`
+                });
+            }
+            
+            if (path.isFunctionDeclaration() || path.isFunctionExpression() || path.isArrowFunctionExpression()) {
+                const node = path.node;
+                const parent = path.parent;
+                
+                let name = '<anonymous>';
+                let type = 'function';
+                
+                if (node.id) {
+                    name = node.id.name;
+                } else if (parent.type === 'VariableDeclarator' && parent.id) {
+                    name = parent.id.name;
+                } else if (parent.type === 'Property' && parent.key) {
+                    name = parent.key.name || parent.key.value;
+                } else if (path.isClassMethod()) {
+                    name = node.key.name;
+                    type = 'method';
+                }
+                
+                // Skip constructor handled separately
+                if (name === 'constructor' && path.isClassMethod()) {
+                    name = 'constructor';
+                    type = 'method';
+                }
+                
+                // Get parameters
+                const params = node.params.map(p => {
+                    if (p.type === 'Identifier') return p.name;
+                    if (p.type === 'RestElement') return `...${p.argument.name}`;
+                    if (p.type === 'ObjectPattern') return '{}';
+                    if (p.type === 'ArrayPattern') return '[]';
+                    return 'param';
+                });
+                
+                // Check for JSDoc
+                const hasDoc = node.leadingComments && 
+                              node.leadingComments.some(c => c.type === 'CommentBlock' && c.value.startsWith('*'));
+                
+                // Build signature
+                const isAsync = node.async ? 'async ' : '';
+                const paramStr = params.join(', ');
+                let signature = '';
+                
+                if (type === 'method') {
+                    signature = `${isAsync}${name}(${paramStr})`;
+                } else if (path.isArrowFunctionExpression() && parent.type === 'VariableDeclarator') {
+                    signature = `const ${name} = ${isAsync}(${paramStr}) =>`;
+                } else {
+                    signature = `${isAsync}function ${name}(${paramStr})`;
+                }
+                
+                // Determine if inside a class
+                if (path.findParent(p => p.isClassDeclaration() || p.isClassExpression())) {
+                    type = 'method';
+                }
+                
+                functions.push({
+                    name: name,
+                    line: node.loc.start.line,
+                    type: type,
+                    hasDoc: hasDoc,
+                    signature: signature,
+                    params: params,
+                    isAsync: node.async || false,
+                    isGenerator: node.generator || false
+                });
+            }
+        },
+        exit(path) {
+            if (path.isClassDeclaration() || path.isClassExpression()) {
+                currentClass = null;
+            }
+        }
+    });
+
+    console.log(JSON.stringify(functions));
+} catch (error) {
+    console.error(JSON.stringify({error: error.message}));
+    process.exit(1);
+}
+'''
+    
+    try:
+        # Check if we have @babel/parser installed
+        check_babel = subprocess.run(['node', '-e', "require('@babel/parser')"], 
+                                   capture_output=True)
+        
+        if check_babel.returncode != 0:
+            # Fall back to a simpler regex-based approach if Babel not available
+            print(f"{Colors.WARNING}Note: @babel/parser not installed. Using fallback parser.{Colors.ENDC}")
+            return detect_javascript_functions_simple(filepath)
+        
+        # Write parser script to temporary file
+        parser_file = Path('.parser-temp.js')
+        parser_file.write_text(parser_script)
+        
+        # Run the parser
+        result = subprocess.run(['node', str(parser_file), filepath], 
+                              capture_output=True, text=True)
+        
+        # Clean up
+        parser_file.unlink()
+        
+        if result.returncode == 0:
+            parsed_functions = json.loads(result.stdout)
+            
+            for func_data in parsed_functions:
+                func_info = FunctionInfo(
+                    name=func_data['name'],
+                    line_number=func_data['line'],
+                    type=func_data['type'],
+                    has_doc=func_data['hasDoc'],
+                    signature=func_data['signature'],
+                    params=func_data.get('params', []),
+                    is_async=func_data.get('isAsync', False),
+                    is_generator=func_data.get('isGenerator', False)
+                )
+                functions.append(func_info)
+        else:
+            error = json.loads(result.stdout) if result.stdout else {'error': result.stderr}
+            print(f"{Colors.WARNING}Warning: Could not parse {filepath}: {error.get('error', 'Unknown error')}{Colors.ENDC}")
+            return detect_javascript_functions_simple(filepath)
+            
+    except Exception as e:
+        print(f"{Colors.WARNING}Warning: Could not use Babel parser: {e}{Colors.ENDC}")
+        return detect_javascript_functions_simple(filepath)
+    
+    return functions
+
+def detect_javascript_functions_simple(filepath: str) -> List[FunctionInfo]:
+    """Simple fallback JavaScript parser when Babel is not available."""
+    functions = []
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+            lines = content.splitlines()
+        
+        import re
+        
+        # Simple regex patterns for common JavaScript patterns
+        patterns = [
+            # Function declarations
+            (r'^(\s*)(export\s+)?(async\s+)?function\s+(\w+)\s*\((.*?)\)', 'function'),
+            # Arrow functions
+            (r'^(\s*)(export\s+)?(const|let|var)\s+(\w+)\s*=\s*(\(.*?\)|[\w]+)\s*=>', 'function'),
+            # Class declarations
+            (r'^(\s*)(export\s+)?class\s+(\w+)', 'class'),
+            # Class methods
+            (r'^(\s+)(async\s+)?(\w+)\s*\((.*?)\)\s*{', 'method'),
+        ]
+        
+        in_class = False
+        class_indent = 0
+        
+        for i, line in enumerate(lines):
+            line_num = i + 1
+            
+            # Check for class
+            class_match = re.match(patterns[2][0], line)
+            if class_match:
+                in_class = True
+                class_indent = len(class_match.group(1))
+                class_name = class_match.group(3)
+                
+                # Check for JSDoc
+                has_doc = i > 0 and '/**' in lines[i-1]
+                
+                functions.append(FunctionInfo(
+                    name=class_name,
+                    line_number=line_num,
+                    type='class',
+                    has_doc=has_doc,
+                    signature=f"class {class_name}"
+                ))
+                continue
+            
+            # Check if we've left the class
+            if in_class and line.strip() and not line.startswith(' ' * (class_indent + 1)):
+                in_class = False
+            
+            # Function declarations
+            func_match = re.match(patterns[0][0], line)
+            if func_match:
+                is_async = func_match.group(3) is not None
+                func_name = func_match.group(4)
+                params_str = func_match.group(5)
+                params = [p.strip() for p in params_str.split(',')] if params_str else []
+                
+                has_doc = i > 0 and '/**' in lines[i-1]
+                
+                functions.append(FunctionInfo(
+                    name=func_name,
+                    line_number=line_num,
+                    type='function',
+                    has_doc=has_doc,
+                    signature=f"{'async ' if is_async else ''}function {func_name}({params_str})",
+                    params=params,
+                    is_async=is_async
+                ))
+            
+            # Arrow functions
+            arrow_match = re.match(patterns[1][0], line)
+            if arrow_match:
+                func_name = arrow_match.group(4)
+                params_part = arrow_match.group(5)
+                
+                # Extract parameters
+                if params_part.startswith('('):
+                    params_str = params_part[1:-1]
+                    params = [p.strip() for p in params_str.split(',')] if params_str else []
+                else:
+                    params = [params_part]
+                
+                has_doc = i > 0 and '/**' in lines[i-1]
+                
+                functions.append(FunctionInfo(
+                    name=func_name,
+                    line_number=line_num,
+                    type='function',
+                    has_doc=has_doc,
+                    signature=f"const {func_name} = {params_part} =>",
+                    params=params
+                ))
+            
+            # Methods
+            if in_class:
+                method_match = re.match(patterns[3][0], line)
+                if method_match:
+                    is_async = method_match.group(2) is not None
+                    method_name = method_match.group(3)
+                    
+                    # Skip keywords
+                    if method_name in ['if', 'for', 'while', 'switch', 'catch', 'try']:
+                        continue
+                    
+                    params_str = method_match.group(4)
+                    params = [p.strip() for p in params_str.split(',')] if params_str else []
+                    
+                    has_doc = i > 0 and '/**' in lines[i-1]
+                    
+                    functions.append(FunctionInfo(
+                        name=method_name,
+                        line_number=line_num,
+                        type='method',
+                        has_doc=has_doc,
+                        signature=f"{'async ' if is_async else ''}{method_name}({params_str})",
+                        params=params,
+                        is_async=is_async
+                    ))
+        
+    except Exception as e:
+        print(f"{Colors.WARNING}Warning: Could not parse {filepath}: {e}{Colors.ENDC}")
+    
+    return functions
+
+def analyze_file(filepath: str) -> Dict[str, Any]:
+    """Analyze a file for functions and documentation status."""
+    ext = Path(filepath).suffix.lower()
+    
+    if ext in ['.py', '.pyw']:
+        functions = detect_python_functions_ast(filepath)
+    elif ext in ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs']:
+        functions = detect_javascript_functions_babel(filepath)
+    else:
+        functions = []
+    
+    undocumented = [f for f in functions if not f.has_doc]
+    
+    return {
+        'filepath': filepath,
+        'total_functions': len(functions),
+        'documented': len(functions) - len(undocumented),
+        'undocumented': len(undocumented),
+        'functions': functions,
+        'undocumented_functions': undocumented
+    }
+
+def generate_jsdoc(func_info: FunctionInfo) -> str:
+    """Generate JSDoc comment for a JavaScript function."""
+    lines = ["/**"]
+    
+    # Add description based on function name
+    func_name = func_info.name
+    if func_name.startswith('get'):
+        lines.append(f" * Gets the {func_name[3:].lower()}.")
+    elif func_name.startswith('set'):
+        lines.append(f" * Sets the {func_name[3:].lower()}.")
+    elif func_name.startswith('is') or func_name.startswith('has'):
+        lines.append(f" * Checks if {func_name[2:].lower()}.")
+    elif func_name == 'constructor':
+        lines.append(" * Creates a new instance.")
+    else:
+        lines.append(f" * {func_name.capitalize().replace('_', ' ')}.")
+    
+    # Add @param tags
+    if func_info.params:
+        for param in func_info.params:
+            if param and param != 'self':
+                # Handle rest parameters
+                if param.startswith('...'):
+                    lines.append(f" * @param {{...any}} {param} - The {param[3:]}.")
+                else:
+                    lines.append(f" * @param {{any}} {param} - The {param}.")
+    
+    # Add @returns tag
+    if func_info.type != 'class' and func_info.name != 'constructor':
+        if func_info.is_generator:
+            lines.append(" * @yields {any} The yielded values.")
+        else:
+            lines.append(" * @returns {any} The result.")
+    
+    # Add @async tag if needed
+    if func_info.is_async:
+        lines.append(" * @async")
+    
+    lines.append(" */")
+    
+    return '\n'.join(lines)
+
+def generate_python_docstring(func_info: FunctionInfo) -> str:
+    """Generate Google-style docstring for a Python function."""
+    lines = ['"""']
+    
+    # Add description based on function name
+    func_name = func_info.name
+    if func_name.startswith('get_'):
+        lines.append(f"Gets the {func_name[4:].replace('_', ' ')}.")
+    elif func_name.startswith('set_'):
+        lines.append(f"Sets the {func_name[4:].replace('_', ' ')}.")
+    elif func_name.startswith('is_') or func_name.startswith('has_'):
+        lines.append(f"Checks if {func_name[3:].replace('_', ' ')}.")
+    elif func_name == '__init__':
+        lines.append("Initializes a new instance.")
+    else:
+        lines.append(f"{func_name.replace('_', ' ').capitalize()}.")
+    
+    # Add Args section
+    if func_info.params:
+        # Filter out 'self' and 'cls'
+        params = [p for p in func_info.params if p not in ['self', 'cls']]
+        if params:
+            lines.append("")
+            lines.append("Args:")
+            for param in params:
+                lines.append(f"    {param}: The {param.replace('_', ' ')}.")
+    
+    # Add Returns/Yields section
+    if func_info.type != 'class' and func_info.name != '__init__':
+        lines.append("")
+        if func_info.is_generator:
+            lines.append("Yields:")
+            lines.append("    The yielded values.")
+        else:
+            lines.append("Returns:")
+            lines.append("    The result.")
+    
+    # Add note about decorators if present
+    if func_info.decorators:
+        lines.append("")
+        lines.append("Note:")
+        lines.append(f"    Decorated with: {', '.join(func_info.decorators)}")
+    
+    lines.append('"""')
+    
+    return '\n'.join(lines)
+
+def insert_documentation(filepath: str, func_info: FunctionInfo, doc_text: str) -> bool:
+    """Insert documentation at the correct position in the file."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # Calculate insertion point
+        insert_line = func_info.line_number - 1
+        
+        # Get indentation from the function/class line
+        if insert_line < len(lines):
+            indent_match = re.match(r'^(\s*)', lines[insert_line])
+            indent = indent_match.group(1) if indent_match else ''
+        else:
+            indent = ''
+        
+        # Add indentation to each line of the documentation
+        doc_lines = doc_text.split('\n')
+        indented_doc = '\n'.join(indent + line if line else '' for line in doc_lines)
+        
+        # Insert the documentation
+        lines.insert(insert_line, indented_doc + '\n')
+        
+        # Write back to file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.writelines(lines)
+        
+        return True
+        
+    except Exception as e:
+        print(f"{Colors.FAIL}Error inserting documentation: {e}{Colors.ENDC}")
+        return False
+
+def process_file_documentation(analysis: Dict[str, Any], dry_run: bool = False) -> Dict[str, int]:
+    """Process a file and add missing documentation."""
+    filepath = analysis['filepath']
+    ext = Path(filepath).suffix.lower()
+    
+    results = {
+        'processed': 0,
+        'failed': 0
+    }
+    
+    # Sort functions by line number in reverse order (bottom to top)
+    # This prevents line number shifts when inserting documentation
+    undocumented_funcs = sorted(analysis['undocumented_functions'], 
+                               key=lambda x: x.line_number, 
+                               reverse=True)
+    
+    for func in undocumented_funcs:
+        # Generate appropriate documentation
+        if ext in ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs']:
+            doc_text = generate_jsdoc(func)
+        elif ext in ['.py', '.pyw']:
+            doc_text = generate_python_docstring(func)
+        else:
+            continue
+        
+        if dry_run:
+            print(f"    Would add documentation for {func.type} {func.name} at line {func.line_number}")
+            results['processed'] += 1
+        else:
+            if insert_documentation(filepath, func, doc_text):
+                results['processed'] += 1
+            else:
+                results['failed'] += 1
+    
+    return results
+
+def enhance_with_claude(files: List[str], verbose: bool = False):
+    """Use Claude Code CLI to enhance the generated documentation."""
+    try:
+        # Create a prompt file for Claude
+        prompt_path = Path(".claude-doc-enhance-prompt.md")
+        
+        with open(prompt_path, 'w') as f:
+            f.write("# Enhance Documentation\n\n")
+            f.write("I've added basic JSDoc/docstring templates to the following files. ")
+            f.write("Please enhance them with meaningful descriptions based on the actual code logic:\n\n")
+            
+            for filepath in files:
+                f.write(f"## {filepath}\n")
+                f.write("- Review the generated documentation\n")
+                f.write("- Replace generic descriptions with specific ones based on the code\n")
+                f.write("- Add @example tags for complex functions\n")
+                f.write("- Add @throws tags where appropriate\n")
+                f.write("- For classes, add detailed descriptions of their purpose\n")
+                f.write("- Ensure parameter descriptions are meaningful\n")
+                f.write("- Update return descriptions to be specific about what's returned\n")
+                f.write("- Add proper type annotations in JSDoc (replace 'any' with specific types)\n\n")
+            
+            f.write("Guidelines:\n")
+            f.write("- Keep descriptions concise but informative\n")
+            f.write("- Use proper grammar and punctuation\n")
+            f.write("- Focus on the 'why' and 'what' rather than the 'how'\n")
+            f.write("- Add type information where it's not obvious\n")
+            f.write("- Include edge cases in descriptions where relevant\n")
+        
+        # Prepare the claude command
+        claude_cmd = ['claude']
+        
+        # Add files to the command
+        for filepath in files:
+            claude_cmd.extend(['-f', filepath])
+        
+        # Add the prompt file
+        claude_cmd.extend(['-f', str(prompt_path)])
+        
+        # Add the instruction
+        claude_cmd.append("Please enhance the documentation in the files listed in the prompt. Focus on making the descriptions meaningful and specific to the actual code implementation.")
+        
+        if verbose:
+            print(f"{Colors.BLUE}Running: {' '.join(claude_cmd)}{Colors.ENDC}")
+        
+        # Execute Claude Code
+        print(f"{Colors.CYAN}Calling Claude Code to enhance documentation...{Colors.ENDC}")
+        result = subprocess.run(claude_cmd, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print(f"{Colors.GREEN}✓ Claude Code successfully enhanced the documentation{Colors.ENDC}")
+            
+            # Clean up prompt file
+            if prompt_path.exists():
+                prompt_path.unlink()
+        else:
+            print(f"{Colors.WARNING}⚠️  Claude Code enhancement failed{Colors.ENDC}")
+            if result.stderr:
+                print(f"{Colors.FAIL}Error: {result.stderr}{Colors.ENDC}")
+            
+            # Check if claude command exists
+            check_claude = subprocess.run(['which', 'claude'], capture_output=True)
+            if check_claude.returncode != 0:
+                print(f"{Colors.CYAN}Note: 'claude' command not found. Make sure Claude Code CLI is installed.{Colors.ENDC}")
+                print(f"{Colors.CYAN}You can manually run: claude -f <file1> -f <file2> ... with a documentation enhancement prompt{Colors.ENDC}")
+    
+    except Exception as e:
+        print(f"{Colors.WARNING}Could not enhance with Claude Code: {e}{Colors.ENDC}")
+        print(f"{Colors.CYAN}You can manually enhance the documentation using Claude Code CLI{Colors.ENDC}")
+
+def main():
+    """Main entry point for the doc-last command."""
+    try:
+        # Parse arguments
+        args = parse_arguments()
+        
+        # Print header
+        print(f"{Colors.HEADER}{'='*60}{Colors.ENDC}")
+        print(f"{Colors.BOLD}Claude Code Documentation Generator v{VERSION} (AST){Colors.ENDC}")
+        print(f"{Colors.HEADER}{'='*60}{Colors.ENDC}\n")
+        
+        # Detect files to process
+        print(f"{Colors.CYAN}🔍 Detecting recently modified files...{Colors.ENDC}")
+        
+        files_to_process = []
+        
+        if is_git_repository():
+            if args.verbose:
+                print(f"{Colors.BLUE}  Git repository detected{Colors.ENDC}")
+            files_to_process = get_git_changed_files()
+            
+            if not files_to_process:
+                print(f"{Colors.WARNING}  No changed files in git, checking recently modified files...{Colors.ENDC}")
+                files_to_process = get_recently_modified_files()
+        else:
+            if args.verbose:
+                print(f"{Colors.BLUE}  Not a git repository, checking recently modified files...{Colors.ENDC}")
+            files_to_process = get_recently_modified_files()
+        
+        if not files_to_process:
+            print(f"\n{Colors.WARNING}No files found that need documentation.{Colors.ENDC}")
+            print(f"{Colors.CYAN}Try modifying some .js, .ts, or .py files and run this command again.{Colors.ENDC}")
+            return
+        
+        # Display files found
+        print(f"\n{Colors.GREEN}✓ Found {len(files_to_process)} file(s) to process:{Colors.ENDC}")
+        for file in files_to_process:
+            ext = Path(file).suffix.lower()
+            doc_type = SUPPORTED_EXTENSIONS.get(ext, 'unknown')
+            print(f"  📄 {file} ({doc_type})")
+        
+        # Analyze files for documentation needs
+        print(f"\n{Colors.CYAN}📊 Analyzing files for documentation needs (using AST)...{Colors.ENDC}")
+        
+        files_analysis = []
+        total_undocumented = 0
+        
+        for file in files_to_process:
+            if args.verbose:
+                print(f"  Analyzing {file}...")
+            
+            analysis = analyze_file(file)
+            files_analysis.append(analysis)
+            total_undocumented += analysis['undocumented']
+        
+        # Display analysis results
+        print(f"\n{Colors.BOLD}Documentation Analysis Results:{Colors.ENDC}")
+        print(f"{Colors.HEADER}{'='*60}{Colors.ENDC}")
+        
+        for analysis in files_analysis:
+            filepath = analysis['filepath']
+            total = analysis['total_functions']
+            documented = analysis['documented']
+            undocumented = analysis['undocumented']
+            
+            if undocumented > 0:
+                status_color = Colors.FAIL
+                status_icon = "❌"
+            else:
+                status_color = Colors.GREEN
+                status_icon = "✅"
+            
+            print(f"\n{Colors.BOLD}{filepath}:{Colors.ENDC}")
+            print(f"  Total functions/classes: {total}")
+            print(f"  {Colors.GREEN}Documented: {documented}{Colors.ENDC}")
+            print(f"  {status_color}Undocumented: {undocumented} {status_icon}{Colors.ENDC}")
+            
+            if args.verbose and analysis['undocumented_functions']:
+                print(f"  {Colors.WARNING}Missing documentation:{Colors.ENDC}")
+                for func in analysis['undocumented_functions']:
+                    print(f"    - Line {func.line_number}: {func.type} {func.name}")
+                    if func.decorators:
+                        print(f"      Decorators: {', '.join(func.decorators)}")
+        
+        print(f"\n{Colors.HEADER}{'='*60}{Colors.ENDC}")
+        print(f"{Colors.BOLD}Summary:{Colors.ENDC}")
+        print(f"  Total files: {len(files_to_process)}")
+        print(f"  {Colors.FAIL if total_undocumented > 0 else Colors.GREEN}Total undocumented functions: {total_undocumented}{Colors.ENDC}")
+        
+        if total_undocumented == 0:
+            print(f"\n{Colors.GREEN}✅ All functions are documented! Great job!{Colors.ENDC}")
+            return
+        
+        if args.dry_run:
+            print(f"\n{Colors.BLUE}Dry run mode - no files will be modified{Colors.ENDC}")
+            print(f"{Colors.CYAN}Would generate documentation for {total_undocumented} functions:{Colors.ENDC}\n")
+            for analysis in files_analysis:
+                if analysis['undocumented'] > 0:
+                    print(f"{Colors.BOLD}{analysis['filepath']}:{Colors.ENDC}")
+                    process_file_documentation(analysis, dry_run=True)
+            return
+        
+        # Process documentation generation
+        print(f"\n{Colors.CYAN}📝 Generating documentation...{Colors.ENDC}")
+        
+        # Create backups
+        print(f"{Colors.BLUE}Creating backups...{Colors.ENDC}")
+        backup_dir = Path(".doc-last-backups")
+        backup_dir.mkdir(exist_ok=True)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        for analysis in files_analysis:
+            if analysis['undocumented'] > 0:
+                filepath = Path(analysis['filepath'])
+                backup_path = backup_dir / f"{filepath.name}.{timestamp}.bak"
+                shutil.copy2(filepath, backup_path)
+                if args.verbose:
+                    print(f"  Backed up {filepath} to {backup_path}")
+        
+        # Process each file
+        total_processed = 0
+        total_failed = 0
+        
+        for analysis in files_analysis:
+            if analysis['undocumented'] > 0:
+                filepath = analysis['filepath']
+                print(f"\n{Colors.BOLD}Processing {filepath}...{Colors.ENDC}")
+                
+                results = process_file_documentation(analysis, dry_run=False)
+                total_processed += results['processed']
+                total_failed += results['failed']
+                
+                if results['processed'] > 0:
+                    print(f"  {Colors.GREEN}✓ Added documentation for {results['processed']} functions{Colors.ENDC}")
+                if results['failed'] > 0:
+                    print(f"  {Colors.FAIL}✗ Failed to document {results['failed']} functions{Colors.ENDC}")
+        
+        # Generate final report
+        print(f"\n{Colors.HEADER}{'='*60}{Colors.ENDC}")
+        print(f"{Colors.BOLD}Documentation Generation Complete!{Colors.ENDC}")
+        print(f"{Colors.HEADER}{'='*60}{Colors.ENDC}\n")
+        
+        print(f"{Colors.GREEN}✅ Successfully documented {total_processed} functions{Colors.ENDC}")
+        if total_failed > 0:
+            print(f"{Colors.FAIL}❌ Failed to document {total_failed} functions{Colors.ENDC}")
+        
+        print(f"\n{Colors.CYAN}Backups saved in: {backup_dir}{Colors.ENDC}")
+        
+        # Create documentation report
+        report_path = Path("documentation-report.md")
+        with open(report_path, 'w') as f:
+            f.write(f"# Documentation Report\n\n")
+            f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"**Parser:** AST-based (Python ast, JavaScript Babel/fallback)\n\n")
+            f.write(f"## Summary\n\n")
+            f.write(f"- Total files processed: {len([a for a in files_analysis if a['undocumented'] > 0])}\n")
+            f.write(f"- Functions documented: {total_processed}\n")
+            f.write(f"- Functions failed: {total_failed}\n\n")
+            f.write(f"## Files Processed\n\n")
+            
+            for analysis in files_analysis:
+                if analysis['undocumented'] > 0:
+                    f.write(f"### {analysis['filepath']}\n")
+                    f.write(f"- Functions documented: {analysis['undocumented']}\n\n")
+        
+        print(f"{Colors.CYAN}Report saved to: {report_path}{Colors.ENDC}")
+        
+        # Use Claude Code to enhance documentation
+        if total_processed > 0 and not args.no_enhance:
+            print(f"\n{Colors.CYAN}🤖 Using Claude Code to enhance documentation...{Colors.ENDC}")
+            
+            # Prepare files list for Claude
+            files_to_enhance = []
+            for analysis in files_analysis:
+                if analysis['undocumented'] > 0:
+                    files_to_enhance.append(analysis['filepath'])
+            
+            if files_to_enhance:
+                enhance_with_claude(files_to_enhance, args.verbose)
+        elif args.no_enhance:
+            print(f"\n{Colors.BLUE}Skipping Claude Code enhancement (--no-enhance flag){Colors.ENDC}")
+        
+    except KeyboardInterrupt:
+        print(f"\n{Colors.WARNING}Operation cancelled by user{Colors.ENDC}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n{Colors.FAIL}Error: {str(e)}{Colors.ENDC}")
+        import traceback
+        if args.verbose:
+            traceback.print_exc()
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

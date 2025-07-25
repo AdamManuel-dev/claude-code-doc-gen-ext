@@ -1,5 +1,10 @@
 // Demo file for Claude Code documentation generation
 
+/**
+ * parse Query String.
+ * @param {*} url - The url.
+ * @returns {*} The result.
+ */
 function parseQueryString(url) {
     const params = new URLSearchParams(url.split('?')[1]);
     const result = {};
@@ -9,7 +14,15 @@ function parseQueryString(url) {
     return result;
 }
 
+/**
+ * A P I Client.
+ */
 class APIClient {
+    /**
+     * Creates a new instance.
+     * @param {*} baseURL - The base U R L.
+     * @param {*} apiKey - The api Key.
+     */
     constructor(baseURL, apiKey) {
         this.baseURL = baseURL;
         this.apiKey = apiKey;
@@ -19,6 +32,12 @@ class APIClient {
         };
     }
     
+    /**
+     * request.
+     * @param {*} endpoint - The endpoint.
+     * @param {*} options - The options.
+     * @returns {*} The result.
+     */
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const response = await fetch(url, {
@@ -33,10 +52,21 @@ class APIClient {
         return response.json();
     }
     
+    /**
+     * Gets the .
+     * @param {*} endpoint - The endpoint.
+     * @returns {*} The result.
+     */
     get(endpoint) {
         return this.request(endpoint, { method: 'GET' });
     }
     
+    /**
+     * post.
+     * @param {*} endpoint - The endpoint.
+     * @param {*} data - The data.
+     * @returns {*} The result.
+     */
     post(endpoint, data) {
         return this.request(endpoint, {
             method: 'POST',
@@ -45,6 +75,12 @@ class APIClient {
     }
 }
 
+/**
+ * debounce.
+ * @param {*} func - The func.
+ * @param {*} delay - The delay.
+ * @returns {*} The result.
+ */
 const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {

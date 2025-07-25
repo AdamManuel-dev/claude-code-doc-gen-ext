@@ -1,0 +1,30 @@
+{
+  "name": "claude-code-doc-generator",
+  "version": "1.0.0",
+  "description": "AST-based documentation generator for JavaScript, TypeScript, JSX, and TSX files",
+  "main": "doc-generator.js",
+  "bin": {
+    "doc-last": "./doc-generator.js"
+  },
+  "scripts": {
+    "test": "node doc-generator.js --dry-run"
+  },
+  "keywords": [
+    "documentation",
+    "jsdoc",
+    "typescript",
+    "react",
+    "ast",
+    "babel"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.24.0",
+    "@babel/traverse": "^7.24.0",
+    "@babel/types": "^7.24.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
