@@ -1,14 +1,23 @@
 // Demo file for Claude Code documentation generation
 
 /**
- * parse Query String.
- * @param {*} url - The url.
- * @returns {*} The result.
- */
-/**
- * Parsequerystring.
- * @param {*} url - The url.
- * @returns {*} The result.
+ * Parses URL query string parameters into a key-value object.
+ * 
+ * Extracts the query portion from a URL and converts it into a JavaScript object
+ * where each query parameter becomes a property. Handles URL encoding automatically.
+ * 
+ * @param {string} url - Complete URL with query parameters (e.g., 'https://example.com?name=john&age=25')
+ * @returns {Object} Object containing parsed query parameters as key-value pairs
+ * 
+ * @example
+ * const params = parseQueryString('https://example.com?name=john&age=25&active=true');
+ * console.log(params);
+ * // Output: { name: 'john', age: '25', active: 'true' }
+ * 
+ * @example
+ * // URL without query parameters
+ * const empty = parseQueryString('https://example.com');
+ * console.log(empty); // Output: {}
  */
 function parseQueryString(url) {
     const params = new URLSearchParams(url.split('?')[1]);
@@ -20,21 +29,27 @@ function parseQueryString(url) {
 }
 
 /**
- * A P I Client.
- */
-/**
- * Apiclient.
+ * HTTP client for making API requests with automatic authentication.
+ * 
+ * Provides a simple interface for making HTTP requests to a REST API with
+ * built-in error handling, authentication headers, and response parsing.
+ * Supports common HTTP methods (GET, POST, PUT, DELETE) with consistent
+ * error handling and timeout management.
+ * 
+ * @example
+ * const client = new APIClient('https://api.example.com', 'your-api-key');
+ * const users = await client.get('/users');
+ * const newUser = await client.post('/users', { name: 'John', email: 'john@example.com' });
  */
 class APIClient {
     /**
-     * Creates a new instance.
-     * @param {*} baseURL - The base U R L.
-     * @param {*} apiKey - The api Key.
-     */
-    /**
-     * Creates a new instance.
-     * @param {*} baseURL - The baseURL.
-     * @param {*} apiKey - The apiKey.
+     * Creates a new APIClient instance with base configuration.
+     * 
+     * @param {string} baseURL - Base URL for all API requests (e.g., 'https://api.example.com')
+     * @param {string} apiKey - API key for authentication, included in Authorization header
+     * 
+     * @example
+     * const client = new APIClient('https://api.example.com', 'sk-1234567890abcdef');
      */
     constructor(baseURL, apiKey) {
         this.baseURL = baseURL;
@@ -46,17 +61,33 @@ class APIClient {
     }
     
     /**
-     * request.
-     * @param {*} endpoint - The endpoint.
-     * @param {*} options - The options.
-     * @returns {*} The result.
-     */
-    /**
-     * Request.
-     * @param {*} endpoint - The endpoint.
-     * @param {*} options - The options.
-     * @returns {*} The result.
-     */
+     * Makes an HTTP request to the specified endpoint with error handling.
+     * 
+     * Core method that handles all HTTP requests for the client. Automatically
+     * includes authentication headers, handles JSON parsing, and provides
+     * comprehensive error handling with status code checking.
+     * 
+     * @param {string} endpoint - API endpoint path (e.g., '/users' or '/posts/123')
+     * @param {Object} [options={}] - Request configuration options
+     * @param {string} [options.method='GET'] - HTTP method (GET, POST, PUT, DELETE, etc.)
+     * @param {Object} [options.body] - Request body data (will be JSON stringified)
+     * @param {Object} [options.headers] - Additional headers to merge with defaults
+     * 
+     * @returns {Promise<Object>} Parsed JSON response from the API
+     * 
+     * @throws {Error} When request fails, includes status code and error message
+     * 
+     * @example
+     * // GET request
+     * const users = await client.request('/users');
+     * 
+     * @example
+     * // POST request with data
+     * const newUser = await client.request('/users', {
+     *   method: 'POST',
+     *   body: { name: 'John', email: 'john@example.com' }
+     * });
+     */"}
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const response = await fetch(url, {

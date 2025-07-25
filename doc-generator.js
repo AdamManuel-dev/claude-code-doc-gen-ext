@@ -37,12 +37,32 @@ const SUPPORTED_EXTENSIONS = {
 };
 
 /**
- * Documentationgenerator.
+ * AST-based documentation generator for JavaScript, TypeScript, JSX, and TSX files.
+ * 
+ * This class automatically detects functions, methods, and classes that lack proper
+ * JSDoc documentation and generates comprehensive documentation based on code analysis.
+ * Supports git integration, backup creation, and optional Claude AI enhancement.
+ * 
+ * @example
+ * const generator = new DocumentationGenerator({ verbose: true, dryRun: false });
+ * generator.run();
  */
 class DocumentationGenerator {
   /**
-   * Creates a new instance.
-   * @param {*} options - The options.
+   * Creates a new DocumentationGenerator instance with specified configuration.
+   * 
+   * @param {Object} [options={}] - Configuration options for the generator
+   * @param {boolean} [options.verbose=false] - Enable detailed console output during processing
+   * @param {boolean} [options.dryRun=false] - Preview changes without modifying files
+   * @param {boolean} [options.noEnhance=false] - Skip Claude AI enhancement step
+   * 
+   * @example
+   * // Create generator with verbose output
+   * const generator = new DocumentationGenerator({ verbose: true });
+   * 
+   * @example
+   * // Preview mode without file changes
+   * const generator = new DocumentationGenerator({ dryRun: true });
    */
   constructor(options = {}) {
     this.verbose = options.verbose || false;
@@ -51,11 +71,19 @@ class DocumentationGenerator {
   }
 
   /**
-   * Get recently modified files from git or filesystem
-   */
-  /**
-   * Gets the filestoprocess.
-   * @returns {*} The result.
+   * Discovers files that need documentation by checking git changes or recent modifications.
+   * 
+   * First attempts to find files changed in git (last commit, staged, or unstaged).
+   * If no git changes are found or not in a git repository, falls back to scanning
+   * for recently modified files (within 5 minutes by default).
+   * 
+   * @returns {string[]} Array of file paths with supported extensions that need documentation
+   * 
+   * @example
+   * const generator = new DocumentationGenerator();
+   * const files = generator.getFilesToProcess();
+   * console.log('Files to document:', files);
+   * // Output: ['src/utils.js', 'components/Button.tsx']
    */
   getFilesToProcess() {
     let files = [];
@@ -176,12 +204,32 @@ class DocumentationGenerator {
   }
 
   /**
-   * Parse JavaScript/TypeScript file using Babel
-   */
-  /**
-   * Parsefile.
-   * @param {*} filepath - The filepath.
-   * @returns {*} The result.
+   * Parses a JavaScript/TypeScript file using Babel AST to extract function information.
+   * 
+   * Uses Babel parser with appropriate plugins for JavaScript, TypeScript, JSX, and modern
+   * syntax features. Traverses the AST to identify functions, methods, classes, and their
+   * documentation status. Handles various function types including arrow functions,
+   * class methods, object methods, and generators.
+   * 
+   * @param {string} filepath - Path to the file to parse
+   * @returns {Array<Object>} Array of function objects with metadata
+   * @returns {string} returns[].name - Function or method name
+   * @returns {number} returns[].line - Line number where function is defined
+   * @returns {string} returns[].type - Type: 'function', 'method', 'class'
+   * @returns {boolean} returns[].hasDoc - Whether function has JSDoc documentation
+   * @returns {string} returns[].signature - Function signature
+   * @returns {string[]} returns[].params - Parameter names
+   * @returns {boolean} returns[].isAsync - Whether function is async
+   * @returns {boolean} returns[].isGenerator - Whether function is a generator
+   * @returns {string[]} returns[].decorators - Decorator names if any
+   * 
+   * @throws {Error} If file cannot be read or parsed
+   * 
+   * @example
+   * const generator = new DocumentationGenerator();
+   * const functions = generator.parseFile('src/utils.js');
+   * console.log(functions[0]);
+   * // Output: { name: 'calculateTotal', line: 15, type: 'function', hasDoc: false, ... }
    */
   parseFile(filepath) {
     const content = fs.readFileSync(filepath, 'utf8');
@@ -517,12 +565,40 @@ class DocumentationGenerator {
   }
 
   /**
-   * Generate JSDoc for a function
-   */
-  /**
-   * Generatejsdoc.
-   * @param {*} func - The func.
-   * @returns {*} The result.
+   * Generates comprehensive JSDoc comment for a function based on its metadata.
+   * 
+   * Creates intelligent descriptions based on function naming patterns (get*, set*, is*, has*,
+   * handle*, on*, etc.) and adds appropriate @param and @returns tags. Handles special cases
+   * for React components, lifecycle methods, constructors, and generator functions.
+   * 
+   * @param {Object} func - Function metadata object from parseFile()
+   * @param {string} func.name - Function name
+   * @param {string} func.type - Function type ('function', 'method', 'class')
+   * @param {string[]} func.params - Parameter names
+   * @param {boolean} func.isAsync - Whether function is async
+   * @param {boolean} func.isGenerator - Whether function is a generator
+   * @param {string[]} func.decorators - Decorator names if any
+   * 
+   * @returns {string} Complete JSDoc comment block ready for insertion
+   * 
+   * @example
+   * const funcMetadata = {
+   *   name: 'getUserById',
+   *   type: 'function',
+   *   params: ['id', 'options'],
+   *   isAsync: true,
+   *   isGenerator: false,
+   *   decorators: []
+   * };
+   * const jsdoc = generator.generateJSDoc(funcMetadata);
+   * console.log(jsdoc);
+   * // Output:
+   * // /**
+   * //  * Gets the user by id.
+   * //  * @param {*} id - The id.
+   * //  * @param {*} options - The options.
+   * //  * @returns {*} The result.
+   * //  *\/
    */
   generateJSDoc(func) {
     const lines = ['/**'];
@@ -786,11 +862,30 @@ Guidelines:
   }
 
   /**
-   * Main run method
-   */
-  /**
-   * Run.
-   * @returns {*} The result.
+   * Executes the complete documentation generation workflow.
+   * 
+   * Main orchestration method that:
+   * 1. Discovers files to process (git changes or recently modified)
+   * 2. Analyzes each file for undocumented functions
+   * 3. Creates backups of files that will be modified
+   * 4. Generates and inserts JSDoc comments
+   * 5. Optionally enhances documentation using Claude AI
+   * 6. Generates a comprehensive report
+   * 
+   * Handles both dry-run mode (preview only) and actual file modification.
+   * Creates detailed console output with color coding and progress indicators.
+   * 
+   * @returns {void} No return value - operates via side effects and console output
+   * 
+   * @example
+   * // Basic usage
+   * const generator = new DocumentationGenerator();
+   * generator.run();
+   * 
+   * @example
+   * // Dry run to preview changes
+   * const generator = new DocumentationGenerator({ dryRun: true });
+   * generator.run();
    */
   run() {
     console.log(`${Colors.HEADER}${'='.repeat(60)}${Colors.ENDC}`);

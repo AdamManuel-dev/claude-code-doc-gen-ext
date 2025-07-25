@@ -1,8 +1,16 @@
-# API Documentation
+# API Reference
 
 ## Overview
 
-The Claude Code Documentation Generation Extension provides both a Node.js API and command-line interfaces for generating documentation. This document describes the programmatic APIs available in the extension.
+The Claude Code Documentation Generation Extension provides a comprehensive Node.js API for programmatic documentation generation. Built around the `DocumentationGenerator` class, it offers AST-based analysis, intelligent JSDoc generation, and seamless integration with git workflows.
+
+**Key Features:**
+- AST-based code analysis using Babel parser
+- Intelligent JSDoc comment generation with pattern recognition
+- Git integration for file discovery
+- Safe file modification with automatic backups
+- Optional Claude AI enhancement
+- TypeScript and modern JavaScript support
 
 ## Table of Contents
 

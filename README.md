@@ -14,7 +14,29 @@ A powerful documentation generator for Claude Code that automatically creates JS
 
 ## 📦 Installation
 
-The extension is designed to work with Claude Code. To install:
+### Quick Setup with Claude Code Integration
+
+For automatic setup with Claude Code CLI integration:
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/claude-code-doc-generation-ext.git
+cd claude-code-doc-generation-ext
+
+# Run the automatic setup script
+python3 setup-claude-integration.py
+```
+
+This will:
+- Install all dependencies
+- Configure slash commands (/doc-last, /doc-recent, /doc-staged, /doc-all)
+- Set up git hooks templates
+- Test the installation
+- Create environment configuration
+
+### Manual Installation
+
+For manual setup or standalone usage:
 
 ```bash
 # Clone the repository
@@ -27,7 +49,22 @@ npm install
 # Make the commands executable
 chmod +x doc-generator.js
 chmod +x documentation-slash-command.py
+chmod +x setup-claude-integration.py
 ```
+
+### Detailed Installation Guide
+
+For complete installation instructions, including troubleshooting and advanced configuration options, see:
+
+**[📖 Claude Code Installation Guide](./CLAUDE_CODE_INSTALLATION.md)**
+
+This comprehensive guide covers:
+- Prerequisites and system requirements
+- Step-by-step Claude Code integration
+- Slash command configuration
+- Git hooks setup
+- Troubleshooting common issues
+- Advanced configuration options
 
 ## 🛠️ Usage
 
@@ -127,10 +164,24 @@ Contributions are welcome! Please:
 
 ## 📝 Documentation
 
+### Getting Started
+- [Claude Code Installation Guide](./CLAUDE_CODE_INSTALLATION.md) - Complete installation with Claude Code integration
+- [Getting Started Guide](./docs/guides/GETTING_STARTED.md) - Basic usage and first steps
 - [Usage Guide](./USAGE.md) - Detailed usage instructions and examples
-- [API Documentation](./docs/API.md) - Complete API reference
-- [Tutorials](./docs/tutorials/) - Step-by-step tutorials
-- [Troubleshooting](./docs/TROUBLESHOOTING.md) - Common issues and solutions
+
+### Technical Reference
+- [API Documentation](./docs/API.md) - Complete API reference for programmatic usage
+- [Architecture Guide](./ARCHITECTURE.md) - System design and component overview
+- [Core Generator Module](./docs/modules/core-generator.md) - Detailed module documentation
+
+### Tutorials & Examples
+- [Advanced Usage Tutorial](./docs/tutorials/advanced-usage.md) - Complex scenarios and workflows
+- [Basic Tutorial](./docs/tutorials/getting-started.md) - Step-by-step walkthrough
+
+### Project Information
+- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Technical implementation details
+- [Claude Code Integration](./CLAUDE_CODE_INTEGRATION.md) - Integration with Claude Code CLI
+- [Completed Features](./COMPLETED_TODOS.md) - Feature completion tracking
 
 ## 🐛 Known Issues
 
