@@ -1,0 +1,39 @@
+// Example JavaScript file for testing documentation generation
+
+function getUserById(id) {
+    return users.find(user => user.id === id);
+}
+
+async function fetchDataFromAPI(endpoint, options) {
+    const response = await fetch(endpoint, options);
+    return response.json();
+}
+
+class UserService {
+    constructor(database) {
+        this.db = database;
+    }
+    
+    async createUser(userData) {
+        const user = await this.db.users.create(userData);
+        return user;
+    }
+    
+    deleteUser(userId) {
+        return this.db.users.delete(userId);
+    }
+    
+    validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+}
+
+const formatCurrency = (amount, currency = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency
+    }).format(amount);
+};
+
+export { getUserById, fetchDataFromAPI, UserService, formatCurrency };

@@ -1,0 +1,21 @@
+# Test Python file for documentation generation
+
+def calculate_average(numbers):
+    return sum(numbers) / len(numbers)
+
+class DataProcessor:
+    def __init__(self, data):
+        self.data = data
+    
+    def process(self):
+        # Process the data
+        return [item * 2 for item in self.data]
+    
+    def validate(self, schema):
+        """Validates data against schema."""
+        # This function already has a docstring
+        return True
+
+def parse_config(config_path):
+    with open(config_path, 'r') as f:
+        return json.load(f)
