@@ -38,16 +38,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ userId, onUpdate, clas
    * @param {*} id: string - The id: string.
    * @returns {*} The result.
    */
-  /**
-   * Fetchuser.
-   * @param {*} id: string - The id: string.
-   * @returns {*} The result.
-   */
-  /**
-   * Fetchuser.
-   * @param {*} id: string - The id: string.
-   * @returns {*} The result.
-   */
   async function fetchUser(id: string) {
     try {
       setLoading(true);
@@ -130,16 +120,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ userId, onUpdate, clas
  * @param {*} user: User | null - The user: User | null.
  * @returns {*} The result.
  */
-/**
- * Useuserpermissions.
- * @param {*} user: User | null - The user: User | null.
- * @returns {*} The result.
- */
-/**
- * Useuserpermissions.
- * @param {*} user: User | null - The user: User | null.
- * @returns {*} The result.
- */
 export function useUserPermissions(user: User | null) {
   const canEdit = user?.role === 'admin' || user?.role === 'user';
   const canDelete = user?.role === 'admin';
@@ -153,26 +133,12 @@ export function useUserPermissions(user: User | null) {
 /**
  * Userservice.
  */
-/**
- * Userservice.
- */
-/**
- * Userservice.
- */
 class UserService {
   private apiBase: string;
   
   /**
    * Creates a new instance.
    * @param {*} apiBase - The api Base.
-   */
-  /**
-   * Creates a new instance.
-   * @param {*} apiBase - The apiBase.
-   */
-  /**
-   * Creates a new instance.
-   * @param {*} apiBase - The apiBase.
    */
   /**
    * Creates a new instance.

@@ -1,6 +1,6 @@
 # Documentation Report
 
-**Generated:** 2025-07-25 02:41:11
+**Generated:** 2025-07-25 02:50:34
 
 ## Summary
 
@@ -10,20 +10,20 @@
 
 ## Files Processed
 
-### test-samples/test-typescript.ts
-- Functions documented: 1
-
-### demo.js
-- Functions documented: 7
-
-### test-samples/test-javascript.js
-- Functions documented: 8
+### UserProfile.tsx
+- Functions documented: 4
 
 ### doc-generator.js
 - Functions documented: 22
 
-### UserProfile.tsx
-- Functions documented: 4
+### demo.js
+- Functions documented: 7
+
+### test-samples/test-typescript.ts
+- Functions documented: 1
+
+### test-samples/test-javascript.js
+- Functions documented: 8
 
 ### test-samples/edge-cases.js
 - Functions documented: 9

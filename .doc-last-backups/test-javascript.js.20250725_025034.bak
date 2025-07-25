@@ -12,21 +12,10 @@
  * @param {*} taxRate - The taxRate.
  * @returns {*} The result.
  */
-/**
- * Calculatetotal.
- * @param {*} items - The items.
- * @param {*} taxRate - The taxRate.
- * @returns {*} The result.
- */
 function calculateTotal(items, taxRate) {
     return items.reduce((sum, item) => sum + item.price, 0) * (1 + taxRate);
 }
 
-/**
- * Gets the userbyid.
- * @param {*} id - The id.
- * @returns {*} The result.
- */
 /**
  * Gets the userbyid.
  * @param {*} id - The id.
@@ -53,12 +42,6 @@ const getUserById = (id) => {
  * @param {*} currency - The currency.
  * @returns {*} The result.
  */
-/**
- * Formatcurrency.
- * @param {*} amount - The amount.
- * @param {*} currency - The currency.
- * @returns {*} The result.
- */
 export function formatCurrency(amount, currency = 'USD') {
     return new Intl.NumberFormat('en-US', { 
         style: 'currency', 
@@ -72,14 +55,7 @@ export function formatCurrency(amount, currency = 'USD') {
 /**
  * Shoppingcart.
  */
-/**
- * Shoppingcart.
- */
 class ShoppingCart {
-    /**
-     * Creates a new instance.
-     * @param {*} userId - The userId.
-     */
     /**
      * Creates a new instance.
      * @param {*} userId - The userId.
@@ -105,20 +81,10 @@ class ShoppingCart {
      * @param {*} quantity - The quantity.
      * @returns {*} The result.
      */
-    /**
-     * Additem.
-     * @param {*} product - The product.
-     * @param {*} quantity - The quantity.
-     * @returns {*} The result.
-     */
     addItem(product, quantity) {
         this.items.push({ product, quantity });
     }
     
-    /**
-     * Checkout.
-     * @returns {*} The result.
-     */
     /**
      * Checkout.
      * @returns {*} The result.
@@ -132,10 +98,6 @@ class ShoppingCart {
         return await processPayment(this.userId, total);
     }
     
-    /**
-     * Calculatetotal.
-     * @returns {*} The result.
-     */
     /**
      * Calculatetotal.
      * @returns {*} The result.

@@ -39,14 +39,7 @@ const SUPPORTED_EXTENSIONS = {
 /**
  * Documentationgenerator.
  */
-/**
- * Documentationgenerator.
- */
 class DocumentationGenerator {
-  /**
-   * Creates a new instance.
-   * @param {*} options - The options.
-   */
   /**
    * Creates a new instance.
    * @param {*} options - The options.
@@ -59,10 +52,6 @@ class DocumentationGenerator {
 
   /**
    * Get recently modified files from git or filesystem
-   */
-  /**
-   * Gets the filestoprocess.
-   * @returns {*} The result.
    */
   /**
    * Gets the filestoprocess.
@@ -97,10 +86,6 @@ class DocumentationGenerator {
    * Checks if gitrepository.
    * @returns {*} The result.
    */
-  /**
-   * Checks if gitrepository.
-   * @returns {*} The result.
-   */
   isGitRepository() {
     try {
       execSync('git rev-parse --git-dir', { stdio: 'ignore' });
@@ -110,10 +95,6 @@ class DocumentationGenerator {
     }
   }
 
-  /**
-   * Gets the gitchangedfiles.
-   * @returns {*} The result.
-   */
   /**
    * Gets the gitchangedfiles.
    * @returns {*} The result.
@@ -159,20 +140,10 @@ class DocumentationGenerator {
    * @param {*} minutes - The minutes.
    * @returns {*} The result.
    */
-  /**
-   * Gets the recentlymodifiedfiles.
-   * @param {*} minutes - The minutes.
-   * @returns {*} The result.
-   */
   getRecentlyModifiedFiles(minutes = 5) {
     const cutoffTime = Date.now() - (minutes * 60 * 1000);
     const files = [];
     
-    /**
-     * Scandir.
-     * @param {*} dir - The dir.
-     * @returns {*} The result.
-     */
     /**
      * Scandir.
      * @param {*} dir - The dir.
@@ -206,11 +177,6 @@ class DocumentationGenerator {
 
   /**
    * Parse JavaScript/TypeScript file using Babel
-   */
-  /**
-   * Parsefile.
-   * @param {*} filepath - The filepath.
-   * @returns {*} The result.
    */
   /**
    * Parsefile.
@@ -256,11 +222,6 @@ class DocumentationGenerator {
       const self = this;
       
       traverse(ast, {
-        /**
-         * Enter.
-         * @param {*} path - The path.
-         * @returns {*} The result.
-         */
         /**
          * Enter.
          * @param {*} path - The path.
@@ -316,11 +277,6 @@ class DocumentationGenerator {
          * @param {*} path - The path.
          * @returns {*} The result.
          */
-        /**
-         * Exit.
-         * @param {*} path - The path.
-         * @returns {*} The result.
-         */
         exit(path) {
           if (t.isClassDeclaration(path.node) || t.isClassExpression(path.node)) {
             classDepth--;
@@ -339,12 +295,6 @@ class DocumentationGenerator {
     }
   }
   
-  /**
-   * Checks if sjsdoc.
-   * @param {*} node - The node.
-   * @param {*} lines - The lines.
-   * @returns {*} The result.
-   */
   /**
    * Checks if sjsdoc.
    * @param {*} node - The node.
@@ -375,11 +325,6 @@ class DocumentationGenerator {
    * @param {*} node - The node.
    * @returns {*} The result.
    */
-  /**
-   * Gets the decorators.
-   * @param {*} node - The node.
-   * @returns {*} The result.
-   */
   getDecorators(node) {
     if (!node.decorators) return [];
     return node.decorators.map(dec => {
@@ -393,14 +338,6 @@ class DocumentationGenerator {
     });
   }
   
-  /**
-   * Extractfunctioninfo.
-   * @param {*} node - The node.
-   * @param {*} path - The path.
-   * @param {*} lines - The lines.
-   * @param {*} currentClass - The currentClass.
-   * @returns {*} The result.
-   */
   /**
    * Extractfunctioninfo.
    * @param {*} node - The node.
@@ -484,12 +421,6 @@ class DocumentationGenerator {
    * @param {*} lines - The lines.
    * @returns {*} The result.
    */
-  /**
-   * Extractmethodinfo.
-   * @param {*} node - The node.
-   * @param {*} lines - The lines.
-   * @returns {*} The result.
-   */
   extractMethodInfo(node, lines) {
     let name = '<anonymous>';
     
@@ -543,11 +474,6 @@ class DocumentationGenerator {
    * @param {*} filepath - The filepath.
    * @returns {*} The result.
    */
-  /**
-   * Analyzefile.
-   * @param {*} filepath - The filepath.
-   * @returns {*} The result.
-   */
   analyzeFile(filepath) {
     const functions = this.parseFile(filepath);
     const undocumented = functions.filter(f => !f.hasDoc);
@@ -564,11 +490,6 @@ class DocumentationGenerator {
 
   /**
    * Generate JSDoc for a function
-   */
-  /**
-   * Generatejsdoc.
-   * @param {*} func - The func.
-   * @returns {*} The result.
    */
   /**
    * Generatejsdoc.
@@ -654,11 +575,6 @@ class DocumentationGenerator {
    * @param {*} str - The str.
    * @returns {*} The result.
    */
-  /**
-   * Cameltowords.
-   * @param {*} str - The str.
-   * @returns {*} The result.
-   */
   camelToWords(str) {
     if (!str) return '';
     return str
@@ -669,13 +585,6 @@ class DocumentationGenerator {
 
   /**
    * Insert documentation into file
-   */
-  /**
-   * Insertdocumentation.
-   * @param {*} filepath - The filepath.
-   * @param {*} func - The func.
-   * @param {*} docText - The docText.
-   * @returns {*} The result.
    */
   /**
    * Insertdocumentation.
@@ -720,11 +629,6 @@ class DocumentationGenerator {
    * @param {*} analysis - The analysis.
    * @returns {*} The result.
    */
-  /**
-   * Processfile.
-   * @param {*} analysis - The analysis.
-   * @returns {*} The result.
-   */
   processFile(analysis) {
     const results = { processed: 0, failed: 0 };
     
@@ -757,11 +661,6 @@ class DocumentationGenerator {
    * @param {*} files - The files.
    * @returns {*} The result.
    */
-  /**
-   * Createbackups.
-   * @param {*} files - The files.
-   * @returns {*} The result.
-   */
   createBackups(files) {
     const backupDir = '.doc-last-backups';
     if (!fs.existsSync(backupDir)) {
@@ -785,11 +684,6 @@ class DocumentationGenerator {
 
   /**
    * Enhance documentation with Claude
-   */
-  /**
-   * Enhancewithclaude.
-   * @param {*} files - The files.
-   * @returns {*} The result.
    */
   /**
    * Enhancewithclaude.
@@ -865,10 +759,6 @@ Guidelines:
 
   /**
    * Main run method
-   */
-  /**
-   * Run.
-   * @returns {*} The result.
    */
   /**
    * Run.

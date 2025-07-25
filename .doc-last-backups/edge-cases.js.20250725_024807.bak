@@ -5,31 +5,11 @@
  * Emptyfunction.
  * @returns {*} The result.
  */
-/**
- * Emptyfunction.
- * @returns {*} The result.
- */
-/**
- * Emptyfunction.
- * @returns {*} The result.
- */
 function emptyFunction() {}
 
 // Function with existing partial JSDoc
 /**
  * This already has a description
- */
-/**
- * Partiallydocumented.
- * @param {*} a - The a.
- * @param {*} b - The b.
- * @returns {*} The result.
- */
-/**
- * Partiallydocumented.
- * @param {*} a - The a.
- * @param {*} b - The b.
- * @returns {*} The result.
  */
 /**
  * Partiallydocumented.
@@ -46,23 +26,7 @@ function partiallyDocumented(a, b) {
  * Outerfunction.
  * @returns {*} The result.
  */
-/**
- * Outerfunction.
- * @returns {*} The result.
- */
-/**
- * Outerfunction.
- * @returns {*} The result.
- */
 function outerFunction() {
-    /**
-     * Innerfunction.
-     * @returns {*} The result.
-     */
-    /**
-     * Innerfunction.
-     * @returns {*} The result.
-     */
     /**
      * Innerfunction.
      * @returns {*} The result.
@@ -81,37 +45,11 @@ function outerFunction() {
  * @param {*} city - The city.
  * @returns {*} The result.
  */
-/**
- * Destructuredparams.
- * @param {*} name - The name.
- * @param {*} age - The age.
- * @param {*} city - The city.
- * @returns {*} The result.
- */
-/**
- * Destructuredparams.
- * @param {*} name - The name.
- * @param {*} age - The age.
- * @param {*} city - The city.
- * @returns {*} The result.
- */
 function destructuredParams({name, age, city = "Unknown"}) {
     return `${name} is ${age} from ${city}`;
 }
 
 // Function with rest parameters
-/**
- * Restparams.
- * @param {*} first - The first.
- * @param {*} ...rest - The ...rest.
- * @returns {*} The result.
- */
-/**
- * Restparams.
- * @param {*} first - The first.
- * @param {*} ...rest - The ...rest.
- * @returns {*} The result.
- */
 /**
  * Restparams.
  * @param {*} first - The first.
@@ -126,21 +64,9 @@ function restParams(first, ...rest) {
 /**
  * Emptyclass.
  */
-/**
- * Emptyclass.
- */
-/**
- * Emptyclass.
- */
 class EmptyClass {}
 
 // Method that looks like control flow
-/**
- * Parser.
- */
-/**
- * Parser.
- */
 /**
  * Parser.
  */
@@ -157,14 +83,6 @@ class Parser {
 }
 
 // Arrow function with no parentheses
-/**
- * Singleparam.
- * @returns {*} The result.
- */
-/**
- * Singleparam.
- * @returns {*} The result.
- */
 /**
  * Singleparam.
  * @returns {*} The result.

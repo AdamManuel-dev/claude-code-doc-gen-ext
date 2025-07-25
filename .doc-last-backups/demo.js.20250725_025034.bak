@@ -24,11 +24,6 @@
  * @param {*} url - The url.
  * @returns {*} The result.
  */
-/**
- * Parsequerystring.
- * @param {*} url - The url.
- * @returns {*} The result.
- */
 function parseQueryString(url) {
     const params = new URLSearchParams(url.split('?')[1]);
     const result = {};
@@ -54,9 +49,6 @@ function parseQueryString(url) {
 /**
  * Apiclient.
  */
-/**
- * Apiclient.
- */
 class APIClient {
     /**
      * Creates a new APIClient instance with base configuration.
@@ -66,11 +58,6 @@ class APIClient {
      * 
      * @example
      * const client = new APIClient('https://api.example.com', 'sk-1234567890abcdef');
-     */
-    /**
-     * Creates a new instance.
-     * @param {*} baseURL - The baseURL.
-     * @param {*} apiKey - The apiKey.
      */
     /**
      * Creates a new instance.
@@ -120,12 +107,6 @@ class APIClient {
      * @param {*} options - The options.
      * @returns {*} The result.
      */
-    /**
-     * Request.
-     * @param {*} endpoint - The endpoint.
-     * @param {*} options - The options.
-     * @returns {*} The result.
-     */
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const response = await fetch(url, {
@@ -145,21 +126,10 @@ class APIClient {
      * @param {*} endpoint - The endpoint.
      * @returns {*} The result.
      */
-    /**
-     * Gets the .
-     * @param {*} endpoint - The endpoint.
-     * @returns {*} The result.
-     */
     get(endpoint) {
         return this.request(endpoint, { method: 'GET' });
     }
     
-    /**
-     * Post.
-     * @param {*} endpoint - The endpoint.
-     * @param {*} data - The data.
-     * @returns {*} The result.
-     */
     /**
      * Post.
      * @param {*} endpoint - The endpoint.
@@ -174,12 +144,6 @@ class APIClient {
     }
 }
 
-/**
- * Debounce.
- * @param {*} func - The func.
- * @param {*} delay - The delay.
- * @returns {*} The result.
- */
 /**
  * Debounce.
  * @param {*} func - The func.
